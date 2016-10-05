@@ -1,0 +1,21 @@
+{
+  "name": "electron-boilerplate",
+  "productName": "ScootApps",
+  "description": "ScootApps",
+  "version": "1.4.3",
+  "author": "Adoux Jérémy",
+  "copyright": "© 2016, Visiativ",
+  "homepage": "http://visiativ.com",
+  "license": "MIT",
+  "main": "background.js",
+  "dependencies": {
+    "fs-jetpack": "^0.9.0",
+    "electron-json-storage": "^2.0.0",
+    "promise": "^7.1.1",
+    "promised-rest-client": "^2.0.0",
+    "xml2js": "^0.4.17",
+    "node-rest-client": "latest",
+    "request": "latest",
+    "auto-launch": "latest"
+  }
+}

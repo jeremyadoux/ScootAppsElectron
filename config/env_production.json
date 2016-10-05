@@ -1,0 +1,6 @@
+{
+  "storageGroupMailName" : "groupMailList",
+  "storageGroupList" : "groupList",
+  "storageAccountPassword" : "accountPassword",
+  "storageFavoriteGroup" : "favoriteGroup"
+}

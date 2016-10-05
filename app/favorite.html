@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html ng-app="app">
+  <head>
+    <meta charset="UTF-8">
+    <title>ScoutApps !</title>
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <link rel="stylesheet" href="./css/bootstrap-theme.min.css">
+  </head>
+  <body ng-controller="favoriteCtrl as vm">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-8">
+          <h2>Ajouter les groupes utilisateurs à vos favoris</h2>
+          <ul>
+            <li ng-repeat="group in vm.groups | filter:{label: 'Innovation'}">
+              <input type="checkbox" ng-model="group.favorite" />
+              {{group.label}}
+            </li>
+          </ul>
+          <input type="button" value="Enregistrer" ng-click="vm.saveFavorite()">
+        </div>
+      </div>
+    </div>
+
+    <script src="./bower_components/angular/angular.js"></script>
+    <script src="./js/favorite.js"></script>
+  </body>
+</html>
