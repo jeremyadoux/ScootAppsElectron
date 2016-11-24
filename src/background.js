@@ -133,22 +133,25 @@ function createTray() {
                 if (group.favorite) {
                     menu.append(new MenuItem({
                         label: group.label, click(menuItem, browserWindows, event) {
-                            //menuItem.commandId
-                            WS.getListMail(group.id).then(function (mailList) {
-                                var re = new RegExp(login, 'g');
-                                for(var key in mailList) {
-                                    if(mailList[key].match(re)) {
-                                        mailList.splice(key, 1);
+
+                            executeIntroduction().then( function() {
+                                //menuItem.commandId
+                                WS.getListMail(group.id).then(function (mailList) {
+                                    var re = new RegExp(login, 'g');
+                                    for(var key in mailList) {
+                                        if(mailList[key].match(re)) {
+                                            mailList.splice(key, 1);
+                                        }
                                     }
-                                }
 
-                                if (event.ctrlKey) {
-                                    clipboard.writeText(mailList.join(";"));
-                                } else {
-                                    shell.openExternal("mailto:" + mailList.join(";"));
-                                }
-                            }, function (e) {
+                                    if (event.ctrlKey) {
+                                        clipboard.writeText(mailList.join(";"));
+                                    } else {
+                                        shell.openExternal("mailto:" + mailList.join(";"));
+                                    }
+                                }, function (e) {
 
+                                });
                             });
                         }
                     }))
