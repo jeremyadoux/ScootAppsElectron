@@ -1,0 +1,132 @@
+paper.install(window);
+
+(function() {
+    'use strict';
+
+    angular
+        .module('app', [])
+        .controller("createTicketCtrl", createTicketCtrl);
+
+    createTicketCtrl.$inject = ['$scope'];
+
+    function createTicketCtrl($scope) {
+        const {ipcRenderer, desktopCapturer} = require('electron');
+
+        var vm = this;
+        var canvas = document.getElementById("canvas");
+
+        //Method
+        vm.saveForm = saveForm;
+        vm.currentScreenURL = currentScreenURL;
+        vm.nextScreen = nextScreen;
+        vm.previousScreen = previousScreen;
+
+        //Attributes
+        vm.sources = [];
+        vm.selectedSources = [];
+        vm.step = 1;
+        vm.currentScreen = 0;
+
+        init();
+
+        function init() {
+            paper.setup('canvas');
+
+            desktopCapturer.getSources({ types:['window', 'screen'], thumbnailSize: {width: 1600, height: 1600} }, function(error, sources) {
+                for (let source of sources) {
+                    vm.sources.push({
+                        id: source.id,
+                        name: source.name,
+                        urlTH: source.thumbnail.toDataURL(),
+                        urlTHModify: source.thumbnail.toDataURL(),
+                        added: false
+                    });
+                }
+
+                $scope.$apply();
+            });
+        }
+
+        function saveForm() {
+            for (let source of vm.sources) {
+                if(source.added) {
+                    vm.selectedSources.push(source);
+                }
+            }
+            vm.step = 2;
+            initDrawing();
+        }
+
+        function currentScreenURL() {
+            if(vm.selectedSources.length > 0) {
+                return vm.selectedSources[vm.currentScreen].urlTHModify;
+            } else {
+                return '';
+            }
+        }
+
+        function nextScreen() {
+            if(vm.currentScreen < (vm.selectedSources.length -1)) {
+                vm.selectedSources[vm.currentScreen].urlTHModify = canvas.toDataURL();
+                vm.currentScreen++;
+                paper.project.clear();
+                initDrawing();
+            }
+        }
+
+        function previousScreen() {
+            if(vm.currentScreen > 0) {
+                vm.selectedSources[vm.currentScreen].urlTHModify = canvas.toDataURL();
+                vm.currentScreen--;
+                paper.project.clear();
+                initDrawing();
+            }
+        }
+
+        function initDrawing() {
+            var path;
+
+            var raster = new paper.Raster('thumbnail');
+            raster.on('load', function() {
+                paper.view.viewSize.width = raster.image.naturalWidth;
+                paper.view.viewSize.height = raster.image.naturalHeight;
+
+                raster.position = paper.view.center;
+
+                //raster.position = paper.view.center;
+
+                // Create a simple drawing tool:
+                var tool = new paper.Tool();
+
+                // Define a mousedown and mousedrag handler
+                /*tool.onMouseDown = function(event) {
+                    path = new paper.Path();
+                    path.strokeColor = 'black';
+                    path.add(event.point);
+                };
+
+                tool.onMouseDrag = function(event) {
+                    path.add(event.point);
+                };*/
+                tool.onMouseDown = function(e) {
+                    var cx = e.point.x;
+                    var cy = e.point.y;
+                    var rectangle = new Rectangle(e.point, new Size(1,1));
+                    path = new Path.Ellipse(rectangle);
+                    path.strokeColor = 'red';
+                };
+
+                tool.onMouseDrag = function(e) {
+                    path.remove();
+                    var x = e.point.x,
+                        y = e.point.y,
+                        w = e.point.x,
+                        h = e.point.y;
+                    var rectangle = new Rectangle(x,y,w,h);
+                    path = new Path.Ellipse(rectangle);
+                    path.strokeColor = 'red'
+                };
+            });
+        }
+    }
+})();

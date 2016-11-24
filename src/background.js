@@ -7,6 +7,7 @@ import AutoLaunch from 'auto-launch';
 
 var winAccount = null;
 var winFavorite = null;
+var winCreateTicket = null;
 var login = null;
 var tray = null;
 var WS = null;
@@ -108,6 +109,23 @@ function openWindowFavorite () {
     }
 }
 
+function openWindowsCreateTicket() {
+    if(winCreateTicket != null) {
+        winCreateTicket.show();
+    } else {
+        // Create the browser window.
+        winCreateTicket = new BrowserWindow({width: 800, height: 600});
+        // and load the index.html of the app.
+        winCreateTicket.loadURL(`file://${__dirname}/templates/create-ticket.html`);
+        winCreateTicket.openDevTools();
+        // Emitted when the window is closed.
+        winCreateTicket.on('close', (e) => {
+            e.preventDefault();
+            winCreateTicket.hide();
+        });
+    }
+}
+
 function createTray() {
     if(tray != null) {
         tray.destroy();
@@ -166,6 +184,10 @@ function createTray() {
             openWindowFavorite();
         }}));
 
+        menu.append(new MenuItem({label: "Créer un ticket", click() {
+            openWindowsCreateTicket();
+        }}));
+
         menu.append(new MenuItem({type: 'separator'}));
 
         menu.append(new MenuItem({label: "Quit", click() {
@@ -177,6 +199,11 @@ function createTray() {
             if(winAccount != null) {
                 winAccount.removeAllListeners('close');
                 winAccount.close();
+            }
+
+            if(winCreateTicket != null) {
+                winCreateTicket.removeAllListeners('close');
+                winCreateTicket.close();
             }
             app.quit()
         }}));
@@ -191,8 +218,8 @@ function executeIntroduction() {
         storage.get(env.storageAccountPassword, (error, data) => {
             if (error) throw error;
             if (typeof data.login != 'undefined' && data.password != 'undefined') {
+                login = data.login;
                 WS.setAuthentication(data.login, data.password).then(function() {
-                    login = data.login;
                     resolve();
                 }, function(e) {
                     openWindowAccount();
@@ -205,6 +232,3 @@ function executeIntroduction() {
         });
     });
 }
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
