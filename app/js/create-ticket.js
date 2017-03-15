@@ -110,14 +110,21 @@
         function init() {
             desktopCapturer.getSources({ types:['window', 'screen'], thumbnailSize: {width: 1600, height: 1600} }, function(error, sources) {
                 for (let source of sources) {
-                    vm.sources.push({
-                        id: source.id,
-                        name: source.name,
-                        urlTH: source.thumbnail.toDataURL(),
-                        urlTHModified: source.thumbnail.toDataURL(),
-                        jsonModify: false,
-                        clicked: false
-                    });
+                    if(source.name != 'Charm Bar'
+                    && source.name != 'Menu Démarrer'
+                    && source.name != 'Volet de recherche'
+                    && !source.name.match(/ScootApps/i)
+                    && !source.name.match(/ScoutApps/i)) {
+                        console.log(source);
+                        vm.sources.push({
+                            id: source.id,
+                            name: source.name,
+                            urlTH: source.thumbnail.toDataURL(),
+                            urlTHModified: source.thumbnail.toDataURL(),
+                            jsonModify: false,
+                            clicked: false
+                        });
+                    }
                 }
 
                 $scope.$apply();
@@ -224,7 +231,7 @@
                     origX = pointer.x;
                     origY = pointer.y;
                     var pointer = canvasFabric.getPointer(o.e);
-                    canvasFabric.add(new fabric.IText('Tap and Type', {
+                    canvasFabric.add(new fabric.IText('Double click', {
                         fontFamily: 'arial black',
                         left: origX,
                         top: origY,
