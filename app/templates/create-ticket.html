@@ -6,11 +6,13 @@
         <link rel="stylesheet" href="../css/bootstrap-theme.min.css">
         <link rel="stylesheet" href="../bower_components/angular-ui-select/dist/select.css">
 
+        <script src="../js/jscolor.min.js"></script>
         <script src="../bower_components/angular/angular.js"></script>
         <script src="../bower_components/angular-sanitize/angular-sanitize.js"></script>
     </head>
     <body ng-controller="createTicketCtrl as ctc">
         <div ng-show="ctc.step == 1">
+            <input type="button" ng-click="ctc.saveForm()" value="Continuer">
             <div class="row" ng-if="$index%3==0" ng-repeat="source in ctc.sources">
                 <div class="col-md-4" ng-repeat="i in [0,1,2]">
                     <p ng-class="{'bg-primary': ctc.sources[$parent.$index+i].clicked}" style="padding: 10px;">
@@ -25,6 +27,9 @@
                 <div class="col-md-1">
                     <div class="row">
                         <div class="col-md-12">
+                            <input class="jscolor" ng-model="ctc.colorSelected">
+                        </div>
+                        <div class="col-md-12">
                             <button class="btn btn-default" type="button" aria-label="Pointeur" ng-click="ctc.changeDrawingMode('pointer')">
                                 <span class="glyphicon glyphicon-move" aria-hidden="true"></span>
                             </button>
@@ -37,6 +42,16 @@
                         <div class="col-md-12">
                             <button class="btn btn-default" type="button" aria-label="Carré" ng-click="ctc.changeDrawingMode('square')">
                                 <span class="glyphicon glyphicon-stop" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                        <div class="col-md-12">
+                            <button class="btn btn-default" type="button" aria-label="Ajouter du texte" ng-click="ctc.changeDrawingMode('text')">
+                                <span class="glyphicon glyphicon-text-color" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                        <div class="col-md-12">
+                            <button class="btn btn-default" type="button" aria-label="Effacer la sélection" ng-click="ctc.removeSelectedFrabic()">
+                                <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                             </button>
                         </div>
                         <div class="col-md-12">

@@ -33,6 +33,7 @@
         vm.saveTicketFull = saveTicketFull;
         vm.loadParentUS = loadParentUS;
         vm.clickedImage = clickedImage;
+        vm.removeSelectedFrabic = removeSelectedFrabic;
 
         //Attributes
         vm.sources = [];
@@ -40,6 +41,8 @@
         vm.step = 1;
         vm.currentScreen = 0;
         vm.drawingMode = "pointer";
+        vm.colorSelected = "CE2A0B";
+
 
         //Ticket information
         vm.createTicket = {
@@ -148,6 +151,7 @@
 
         function initDrawing() {
             canvasFabric.clear();
+            changeDrawingMode('pointer');
             let currentObj = currentScreenObj();
             if(currentObj.jsonModify) {
                 canvasFabric.loadFromJSON(currentObj.jsonModify, canvasFabric.renderAll.bind(canvasFabric));
@@ -164,30 +168,51 @@
             vm.drawingMode = mode;
             if(mode == "pencil") {
                 canvasFabric.isDrawingMode = true;
+                canvasFabric.selection = false;
             } else {
                 canvasFabric.isDrawingMode = false;
+                canvasFabric.selection = true;
             }
         }
 
         function mousedownCanvas(o) {
-            if(vm.drawingMode == "square") {
-                isDown = true;
-                var pointer = canvasFabric.getPointer(o.e);
-                origX = pointer.x;
-                origY = pointer.y;
-                var pointer = canvasFabric.getPointer(o.e);
-                rect = new fabric.Rect({
-                    left: origX,
-                    top: origY,
-                    originX: 'left',
-                    originY: 'top',
-                    width: pointer.x - origX,
-                    height: pointer.y - origY,
-                    angle: 0,
-                    fill: 'rgba(255,0,0,0.5)',
-                    transparentCorners: false
-                });
-                canvasFabric.add(rect);
+            if(!canvasFabric.getActiveObject()) {
+                if (vm.drawingMode == "square") {
+                    isDown = true;
+                    var pointer = canvasFabric.getPointer(o.e);
+                    origX = pointer.x;
+                    origY = pointer.y;
+                    var pointer = canvasFabric.getPointer(o.e);
+                    rect = new fabric.Rect({
+                        left: origX,
+                        top: origY,
+                        originX: 'left',
+                        originY: 'top',
+                        width: pointer.x - origX,
+                        height: pointer.y - origY,
+                        angle: 0,
+                        fill: '#' + vm.colorSelected,
+                        opacity: 0.6,
+                        transparentCorners: false
+                    });
+                    canvasFabric.add(rect);
+                }
+                if(vm.drawingMode == "text") {
+                    var pointer = canvasFabric.getPointer(o.e);
+                    origX = pointer.x;
+                    origY = pointer.y;
+                    var pointer = canvasFabric.getPointer(o.e);
+                    canvasFabric.add(new fabric.IText('Tap and Type', {
+                        fontFamily: 'arial black',
+                        left: origX,
+                        top: origY,
+                        originX: 'left',
+                        originY: 'top',
+                        fill: '#' + vm.colorSelected,
+                    }));
+
+                    vm.drawingMode = "pointer";
+                }
             }
         }
 
@@ -213,6 +238,22 @@
 
         function mouseupCanvas(o) {
             isDown = false;
+            if(vm.drawingMode == "square") {
+                rect.setCoords();
+                canvasFabric.deactivateAll().renderAll();
+            }
+        }
+
+        function changedColorSelection(color) {
+            if(canvasFabric.getActiveObject()) {
+                canvasFabric.getActiveObject().fill = "#"+vm.colorSelected;
+            }
+        }
+
+        function removeSelectedFrabic() {
+            if(canvasFabric.getActiveObject()) {
+                canvasFabric.remove(canvasFabric.getActiveObject());
+            }
         }
 
         function goToCreateTicket() {
@@ -313,5 +354,9 @@
         $scope.$watch(function () {
             return vm.createTicket.project;
         }, changeProjectSelection);
+
+        $scope.$watch(function () {
+            return vm.colorSelected;
+        }, changedColorSelection);
     }
 })();
