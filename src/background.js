@@ -150,9 +150,8 @@ function openWindowsCreateTicket() {
         winCreateTicket.loadURL(`file://${__dirname}/templates/create-ticket.html`);
     } else {
         // Create the browser window.
-        winCreateTicket = new BrowserWindow({width: 1280, height: 800});
+        winCreateTicket = new BrowserWindow({width: 1680, height: 960});
         // and load the index.html of the app.
-        winCreateTicket.openDevTools();
         winCreateTicket.loadURL(`file://${__dirname}/templates/create-ticket.html`);
         // Emitted when the window is closed.
 

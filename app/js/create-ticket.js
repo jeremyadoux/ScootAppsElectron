@@ -157,8 +157,11 @@
                 canvasFabric.loadFromJSON(currentObj.jsonModify, canvasFabric.renderAll.bind(canvasFabric));
             } else {
                 fabric.Image.fromURL(currentObj.urlTH, function(oImg) {
-                    canvasFabric.setWidth(oImg.width);
-                    canvasFabric.setHeight(oImg.height);
+                    oImg.scaleToWidth(oImg.width*0.9);
+                    oImg.scaleToHeight(oImg.height*0.9);
+
+                    canvasFabric.setWidth(oImg.width*0.9);
+                    canvasFabric.setHeight(oImg.height*0.9);
                     canvasFabric.setBackgroundImage(oImg, canvasFabric.renderAll.bind(canvasFabric));
                 });
             }
