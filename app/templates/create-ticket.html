@@ -72,6 +72,7 @@
         </div>
         <div ng-show="ctc.step == 3">
             <form class="form-horizontal">
+                <button type="button" class="btn btn-success" ng-click="ctc.razTicket()">RAZ</button>
                 <div class="form-group">
                     <label for="inputProject" class="col-sm-2 control-label">Projet</label>
                     <div class="col-sm-10">
@@ -150,6 +151,7 @@
                     </div>
                 </div>
                 <button type="button" class="btn btn-success" ng-click="ctc.loadParentUS()">Charger les US parents disponibles</button>
+                <button type="button" class="btn btn-success" ng-click="ctc.removeUSParent()">Retirer la US parente</button>
                     <div class="form-group">
                         <label for="inputParent" class="col-sm-2 control-label" >Tâches parentes</label>
                         <div class="col-sm-10">

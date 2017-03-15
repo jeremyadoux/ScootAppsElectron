@@ -34,6 +34,8 @@
         vm.loadParentUS = loadParentUS;
         vm.clickedImage = clickedImage;
         vm.removeSelectedFrabic = removeSelectedFrabic;
+        vm.razTicket = razTicket;
+        vm.removeUSParent = removeUSParent;
 
         //Attributes
         vm.sources = [];
@@ -66,6 +68,23 @@
         };
 
 
+        function razTicket() {
+            vm.createTicket = {
+                project: "",
+                tracker: "",
+                status: "",
+                version: "",
+                priority: "",
+                title: "",
+                description: "",
+                parent_issue_id: 0,
+                reopen: false
+            };
+        }
+
+        function removeUSParent() {
+            vm.createTicket.parent_issue_id = 0;
+        }
 
         ipcRenderer.on('redmine-return', (event, arg) => {
             redmineService.setApiKey(arg.apikey, arg.url);
@@ -293,6 +312,8 @@
                             vm.dataSelect.version.push(results.data.versions[index]);
                         }
                     }
+
+                    vm.createTicket.version = '';
                 });
                 redmineService.trackerList().then(function (results) {
                     vm.dataSelect.tracker = results.data.trackers;
