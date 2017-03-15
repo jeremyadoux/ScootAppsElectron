@@ -3,5 +3,7 @@
   "storageGroupList" : "groupList",
   "storageAccountPassword" : "accountPassword",
   "storageFavoriteGroup" : "favoriteGroup",
-  "groupListWhere": "Innovation"
+  "groupListWhere": "Innovation",
+  "redmineKey" : "redmineKey",
+  "redmineFavorite" : "redmineFavorite"
 }

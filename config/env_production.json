@@ -2,5 +2,7 @@
   "storageGroupMailName" : "groupMailList",
   "storageGroupList" : "groupList",
   "storageAccountPassword" : "accountPassword",
-  "storageFavoriteGroup" : "favoriteGroup"
+  "storageFavoriteGroup" : "favoriteGroup",
+  "redmineKey" : "redmineKey",
+  "redmineFavorite" : "redmineFavorite"
 }

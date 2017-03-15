@@ -1,4 +1,4 @@
-import {app, BrowserWindow, Menu, Tray, MenuItem, shell, ipcMain, clipboard, dialog } from 'electron';
+import {app, BrowserWindow, Menu, Tray, MenuItem, shell, ipcMain, clipboard, dialog, globalShortcut } from 'electron';
 import promise from 'promise';
 import webservicesVdoc from './helpers/webservices';
 import storage from 'electron-json-storage';
@@ -31,6 +31,15 @@ app.on('ready', () => {
     WS = webservicesVdoc("vdoc-prod.vdocsuite.com");
     createTray();
     executeIntroduction().then( function() {});
+
+    const ret = globalShortcut.register('CommandOrControl+Shift+X', () => {
+        openWindowsCreateTicket()
+    })
+});
+
+app.on('will-quit', () => {
+    // Unregister all shortcuts.
+    globalShortcut.unregisterAll()
 });
 
 ipcMain.on('authentication-message', (event, arg) => {
@@ -41,6 +50,32 @@ ipcMain.on('authentication-message', (event, arg) => {
         openWindowFavorite();
     }, function(e) {
         event.sender.send('authentication-failed', e);
+    });
+});
+
+ipcMain.on('redmine-save', (event, arg) => {
+    storage.set(env.redmineKey, {apikey: arg.apikey, url: arg.url}, (error) => {
+        if (error) throw error;
+
+        winAccount.hide();
+    });
+});
+
+ipcMain.on('redmine-get', (event, arg) => {
+    storage.get(env.redmineKey, (error, redmineKey) => {
+        event.sender.send('redmine-return', redmineKey);
+    });
+});
+
+ipcMain.on('redmine-save-favorite', (event, arg) => {
+    storage.set(env.redmineFavorite, arg, (error) => {
+        if (error) throw error;
+    });
+});
+
+ipcMain.on('redmine-get-favorite', (event, arg) => {
+    storage.get(env.redmineFavorite, (error, redmineFavorite) => {
+        event.sender.send('redmine-return-favorite', redmineFavorite);
     });
 });
 
@@ -112,13 +147,15 @@ function openWindowFavorite () {
 function openWindowsCreateTicket() {
     if(winCreateTicket != null) {
         winCreateTicket.show();
+        winCreateTicket.loadURL(`file://${__dirname}/templates/create-ticket.html`);
     } else {
         // Create the browser window.
-        winCreateTicket = new BrowserWindow({width: 800, height: 600});
+        winCreateTicket = new BrowserWindow({width: 1280, height: 800});
         // and load the index.html of the app.
-        winCreateTicket.loadURL(`file://${__dirname}/templates/create-ticket.html`);
         winCreateTicket.openDevTools();
+        winCreateTicket.loadURL(`file://${__dirname}/templates/create-ticket.html`);
         // Emitted when the window is closed.
+
         winCreateTicket.on('close', (e) => {
             e.preventDefault();
             winCreateTicket.hide();
