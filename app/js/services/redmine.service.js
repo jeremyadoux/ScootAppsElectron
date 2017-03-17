@@ -12,6 +12,8 @@
 
     redmineService.$inject = ['$http'];
 
+    var listToTree = require('list-to-tree-lite');
+
     function redmineService($http) {
         let apiKey = "";
         let redmineUrl = "";
@@ -29,7 +31,50 @@
         }
 
         function favoriteProject() {
-            return $http.get(redmineUrl + 'projects.json?limit=200', {headers: headersRedmine});
+            return new Promise(function(resolve, reject) {
+                $http.get(redmineUrl + 'projects.json?limit=200', {headers: headersRedmine}).then(function(results) {
+                    let projectList = results.data.projects;
+                    let newProjectList = [];
+
+                    let options = {
+                        idKey: 'id',
+                        parentKey: 'parent'
+                    };
+
+                    for(let i = 0; i < projectList.length; i++) {
+                        if(projectList[i].parent) {
+                            projectList[i].parent = projectList[i].parent.id;
+                        }
+
+                        if(projectList[i].status == 1) {
+                            newProjectList.push(projectList[i]);
+                        }
+                    }
+
+                    let projectTree = listToTree(newProjectList, options);
+
+                    let treeLinear = function(tree, rendered, option) {
+                        for(let i=0; i < tree.length; i++) {
+                            if(tree[i].id != 16) {
+                                tree[i].name = option + " " + tree[i].name;
+                                rendered.push(tree[i]);
+                                if (tree[i].children.length > 0) {
+                                    rendered = treeLinear(tree[i].children, rendered, option + '--');
+                                }
+                            }
+                        }
+
+                        return rendered;
+                    };
+
+                    let returnArrayResult = treeLinear(projectTree, [], '');
+
+                    //console.log(returnArrayResult);
+
+                    resolve(returnArrayResult);
+                });
+
+            });
         }
 
         function versionProject(project) {

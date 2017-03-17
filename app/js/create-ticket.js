@@ -113,6 +113,7 @@
                     if(source.name != 'Charm Bar'
                     && source.name != 'Menu Démarrer'
                     && source.name != 'Volet de recherche'
+                    && source.name != 'Date et heure'
                     && !source.name.match(/ScootApps/i)
                     && !source.name.match(/ScoutApps/i)) {
                         console.log(source);
@@ -291,22 +292,7 @@
             vm.step = 3;
 
             redmineService.favoriteProject().then(function (results) {
-                for(let index in results.data.projects) {
-                    if(results.data.projects[index].description != 'Regroupement alphabétique'
-                        && results.data.projects[index].id != 16
-                        && results.data.projects[index].id != 325
-                        && results.data.projects[index].id != 114
-                        && results.data.projects[index].id != 80
-                        && results.data.projects[index].id != 196
-                        && results.data.projects[index].id != 89
-                        && results.data.projects[index].id != 12
-                        && results.data.projects[index].id != 220
-                        && results.data.projects[index].id != 114
-                        && results.data.projects[index].status == 1
-                    )
-                        vm.dataSelect.projects.push(results.data.projects[index]);
-
-                }
+                vm.dataSelect.projects = results;
             });
         }
 
