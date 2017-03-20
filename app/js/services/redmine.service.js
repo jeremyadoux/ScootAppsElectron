@@ -102,10 +102,13 @@
                     priority_id: ticket.priority.id,
                     subject: ticket.title,
                     description: ticket.description,
-                    fixed_version_id: ticket.version.id,
                     uploads: ticket.uploads
                 }
             };
+
+            if(ticket.version != "") {
+                data.fixed_version_id = ticket.version.id;
+            }
 
             if(ticket.parent_issue_id != 0) {
                 data.issue.parent_issue_id = ticket.parent_issue_id.id;

@@ -36,6 +36,8 @@
         vm.removeSelectedFrabic = removeSelectedFrabic;
         vm.razTicket = razTicket;
         vm.removeUSParent = removeUSParent;
+        vm.oneClickedImage = oneClickedImage;
+        vm.resetCreateTicket = resetCreateTicket;
 
         //Attributes
         vm.sources = [];
@@ -43,7 +45,10 @@
         vm.step = 1;
         vm.currentScreen = 0;
         vm.drawingMode = "pointer";
-        vm.colorSelected = "CE2A0B";
+        vm.colorSelected = "#CE2A0B";
+        vm.drawingPencil = {
+            lineWidth:5
+        };
 
 
         //Ticket information
@@ -150,6 +155,16 @@
             }
         }
 
+        function oneClickedImage() {
+            for(let index in vm.sources) {
+                if(vm.sources[index].clicked) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         function currentScreenObj() {
             if(vm.selectedSources.length > 0) {
                 return vm.selectedSources[vm.currentScreen];
@@ -199,6 +214,9 @@
             if(mode == "pencil") {
                 canvasFabric.isDrawingMode = true;
                 canvasFabric.selection = false;
+                canvasFabric.freeDrawingBrush = new fabric['PencilBrush'](canvasFabric);
+                canvasFabric.freeDrawingBrush.color = vm.colorSelected;
+                canvasFabric.freeDrawingBrush.width = parseInt(vm.drawingPencil.lineWidth, 10) || 1;
             } else {
                 canvasFabric.isDrawingMode = false;
                 canvasFabric.selection = true;
@@ -221,8 +239,8 @@
                         width: pointer.x - origX,
                         height: pointer.y - origY,
                         angle: 0,
-                        fill: '#' + vm.colorSelected,
-                        opacity: 0.6,
+                        fill: vm.colorSelected,
+                        opacity: 0.2,
                         transparentCorners: false
                     });
                     canvasFabric.add(rect);
@@ -238,7 +256,7 @@
                         top: origY,
                         originX: 'left',
                         originY: 'top',
-                        fill: '#' + vm.colorSelected,
+                        fill: vm.colorSelected,
                     }));
 
                     vm.drawingMode = "pointer";
@@ -276,7 +294,11 @@
 
         function changedColorSelection(color) {
             if(canvasFabric.getActiveObject()) {
-                canvasFabric.getActiveObject().fill = "#"+vm.colorSelected;
+                canvasFabric.getActiveObject().fill = vm.colorSelected;
+                if (canvasFabric.freeDrawingBrush) {
+                    canvasFabric.freeDrawingBrush.color = vm.colorSelected;
+                    canvasFabric.freeDrawingBrush.width = parseInt(vm.drawingPencil.lineWidth, 10) || 1;
+                }
             }
         }
 
@@ -294,6 +316,12 @@
             redmineService.favoriteProject().then(function (results) {
                 vm.dataSelect.projects = results;
             });
+        }
+
+        function changeVersionSelection(version) {
+            if(version) {
+                loadParentUS();
+            }
         }
 
         function changeProjectSelection(project) {
@@ -333,6 +361,9 @@
                         }
                     }
                 });
+
+                vm.dataSelect.parentIssue = [];
+                vm.createTicket.parent_issue_id = 0;
             }
         }
 
@@ -340,6 +371,7 @@
             vm.createTicket.parent_issue_id = 0;
             redmineService.getTicketUS(vm.createTicket.project.id ,vm.createTicket.version.id, 36).then(function(results) {
                vm.dataSelect.parentIssue = results.data.issues;
+               vm.createTicket.parent_issue_id = 0;
             });
         }
 
@@ -358,7 +390,6 @@
                     ipcRenderer.send('redmine-save-favorite', vm.createTicket);
                     if(vm.createTicket.reopen) {
                         redmineService.updateUSReopen(vm.createTicket.parent_issue_id.id).then(function(response) {
-                            console.log('plop');
                         });
                     }
 
@@ -368,12 +399,30 @@
             });
         }
 
+        function resetCreateTicket() {
+            let window = remote.getCurrentWindow();
+            window.close();
+        }
+
         $scope.$watch(function () {
             return vm.createTicket.project;
         }, changeProjectSelection);
 
         $scope.$watch(function () {
+            return vm.createTicket.version;
+        }, changeVersionSelection);
+
+        $scope.$watch(function () {
             return vm.colorSelected;
         }, changedColorSelection);
+
+        $scope.$watch(function () {
+            return vm.drawingPencil.lineWidth;
+        }, function() {
+            if (canvasFabric.freeDrawingBrush) {
+                canvasFabric.freeDrawingBrush.color = vm.colorSelected;
+                canvasFabric.freeDrawingBrush.width = parseInt(vm.drawingPencil.lineWidth, 10) || 1;
+            }
+        });
     }
 })();

@@ -115,7 +115,7 @@ function openWindowAccount () {
         winAccount.show();
     } else {
         // Create the browser window.
-        winAccount = new BrowserWindow({width: 800, height: 600});
+        winAccount = new BrowserWindow({width: 800, height: 600, icon:  __dirname + '/images/scout.ico'});
         // and load the index.html of the app.
         winAccount.loadURL(`file://${__dirname}/account.html`);
         //winAccount.openDevTools();
@@ -132,7 +132,7 @@ function openWindowFavorite () {
         winFavorite.show();
     } else {
         // Create the browser window.
-        winFavorite = new BrowserWindow({width: 800, height: 600});
+        winFavorite = new BrowserWindow({width: 800, height: 600, icon:  __dirname + '/images/scout.ico'});
         // and load the index.html of the app.
         winFavorite.loadURL(`file://${__dirname}/favorite.html`);
         //winFavorite.openDevTools();
@@ -150,9 +150,9 @@ function openWindowsCreateTicket() {
         winCreateTicket.loadURL(`file://${__dirname}/templates/create-ticket.html`);
     } else {
         // Create the browser window.
-        winCreateTicket = new BrowserWindow({width: 1680, height: 960});
+        winCreateTicket = new BrowserWindow({width: 1680, height: 960, icon:  __dirname + '/images/scout.ico'});
         // and load the index.html of the app.
-        winCreateTicket.openDevTools();
+        //winCreateTicket.openDevTools();
         winCreateTicket.loadURL(`file://${__dirname}/templates/create-ticket.html`);
         // Emitted when the window is closed.
 
