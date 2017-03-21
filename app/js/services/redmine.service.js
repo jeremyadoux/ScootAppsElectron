@@ -106,8 +106,10 @@
                 }
             };
 
+            console.log(ticket);
+
             if(ticket.version != "") {
-                data.fixed_version_id = ticket.version.id;
+                data.issue.fixed_version_id = ticket.version.id;
             }
 
             if(ticket.parent_issue_id != 0) {

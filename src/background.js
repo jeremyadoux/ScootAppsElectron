@@ -4,7 +4,9 @@ import webservicesVdoc from './helpers/webservices';
 import storage from 'electron-json-storage';
 import env from './env';
 import AutoLaunch from 'auto-launch';
+import Toaster from 'electron-toaster';
 
+let toaster = new Toaster();
 var winAccount = null;
 var winFavorite = null;
 var winCreateTicket = null;
@@ -54,6 +56,10 @@ ipcMain.on('authentication-message', (event, arg) => {
 });
 
 ipcMain.on('redmine-save', (event, arg) => {
+    if(!(arg.url.match(/\/$/g))) {
+        arg.url = arg.url + "/";
+    }
+
     storage.set(env.redmineKey, {apikey: arg.apikey, url: arg.url}, (error) => {
         if (error) throw error;
 
@@ -151,11 +157,15 @@ function openWindowsCreateTicket() {
     } else {
         // Create the browser window.
         winCreateTicket = new BrowserWindow({width: 1680, height: 960, icon:  __dirname + '/images/scout.ico'});
+
+        toaster.init(winCreateTicket);
+
         // and load the index.html of the app.
         //winCreateTicket.openDevTools();
         winCreateTicket.loadURL(`file://${__dirname}/templates/create-ticket.html`);
-        // Emitted when the window is closed.
+        winCreateTicket.maximize();
 
+        // Emitted when the window is closed.
         winCreateTicket.on('close', (e) => {
             e.preventDefault();
             winCreateTicket.hide();

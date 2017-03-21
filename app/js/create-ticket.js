@@ -10,6 +10,8 @@
     function createTicketCtrl($scope, redmineService) {
         const {ipcRenderer, desktopCapturer, remote} = require('electron');
 
+        let urlRedmine = '';
+
         var vm = this;
         var started = false;
         var rect, isDown, origX, origY;
@@ -20,6 +22,8 @@
         canvasFabric.observe('mouse:down', function(e) { mousedownCanvas(e); });
         canvasFabric.observe('mouse:move', function(e) { mousemoveCanvas(e); });
         canvasFabric.observe('mouse:up', function(e) { mouseupCanvas(e); });
+        canvasFabric.observe('before:selection:cleared', function(e) { beforeSelectionClearedCanvas(e); });
+        canvasFabric.observe('object:selected', function(e) { onObjecSelectedCanvas(e); });
 
         var canvas = document.getElementById("canvas");
 
@@ -45,10 +49,12 @@
         vm.step = 1;
         vm.currentScreen = 0;
         vm.drawingMode = "pointer";
+        vm.objectMode = "pointer";
         vm.colorSelected = "#CE2A0B";
         vm.drawingPencil = {
             lineWidth:5
         };
+        vm.errorMessage = "";
 
 
         //Ticket information
@@ -92,6 +98,7 @@
         }
 
         ipcRenderer.on('redmine-return', (event, arg) => {
+            urlRedmine =  arg.url;
             redmineService.setApiKey(arg.apikey, arg.url);
             init();
             ipcRenderer.send('redmine-get-favorite', {});
@@ -211,16 +218,22 @@
 
         function changeDrawingMode(mode) {
             vm.drawingMode = mode;
+            vm.objectMode = mode;
             if(mode == "pencil") {
                 canvasFabric.isDrawingMode = true;
-                canvasFabric.selection = false;
                 canvasFabric.freeDrawingBrush = new fabric['PencilBrush'](canvasFabric);
                 canvasFabric.freeDrawingBrush.color = vm.colorSelected;
                 canvasFabric.freeDrawingBrush.width = parseInt(vm.drawingPencil.lineWidth, 10) || 1;
             } else {
                 canvasFabric.isDrawingMode = false;
+            }
+            if(mode != 'pointer') {
+                canvasFabric.selection = false;
+            } else {
                 canvasFabric.selection = true;
             }
+
+
         }
 
         function mousedownCanvas(o) {
@@ -250,16 +263,24 @@
                     origX = pointer.x;
                     origY = pointer.y;
                     var pointer = canvasFabric.getPointer(o.e);
-                    canvasFabric.add(new fabric.IText('Double click', {
+                    let fabricText = new fabric.IText('', {
                         fontFamily: 'arial black',
                         left: origX,
                         top: origY,
                         originX: 'left',
                         originY: 'top',
                         fill: vm.colorSelected,
-                    }));
+                    });
+                    canvasFabric.add(fabricText);
 
-                    vm.drawingMode = "pointer";
+                    changeDrawingMode("pointer");
+
+                    canvasFabric.setActiveObject(fabricText);
+                    fabricText.enterEditing();
+                    fabricText.hiddenTextarea.focus();
+
+
+                    $scope.$apply();
                 }
             }
         }
@@ -279,9 +300,9 @@
                 rect.set({width: Math.abs(origX - pointer.x)});
                 rect.set({height: Math.abs(origY - pointer.y)});
 
-
                 canvasFabric.renderAll();
             }
+            $scope.$apply();
         }
 
         function mouseupCanvas(o) {
@@ -289,16 +310,73 @@
             if(vm.drawingMode == "square") {
                 rect.setCoords();
                 canvasFabric.deactivateAll().renderAll();
+                changeDrawingMode('pointer');
             }
+            $scope.$apply();
+        }
+
+        function beforeSelectionClearedCanvas(e) {
+            let clearedObject = canvasFabric.getActiveObject();
+            console.log(clearedObject);
+            if(typeof(clearedObject) !== 'undefined' && clearedObject != null) {
+                if(clearedObject.get('type') == 'i-text') {
+                    if(clearedObject.getText() == '') {
+                        canvasFabric.remove(clearedObject);
+                    }
+                }
+                if(vm.drawingMode == 'pointer') {
+                    vm.objectMode = 'pointer';
+                }
+                $scope.$apply();
+            }
+        }
+
+        function onObjecSelectedCanvas(e) {
+            let selectedObject = canvasFabric.getActiveObject();
+            if(typeof(selectedObject) !== 'undefined' && selectedObject != null) {
+                let type = selectedObject.get('type');
+                if(type == 'rect') {
+                    vm.objectMode = 'square';
+                }
+
+                if(type == 'i-text') {
+                    vm.objectMode = 'text';
+                }
+
+                if(type == 'path') {
+                    vm.objectMode = 'pencil';
+                }
+
+                $scope.$apply();
+            }
+
+
         }
 
         function changedColorSelection(color) {
             if(canvasFabric.getActiveObject()) {
-                canvasFabric.getActiveObject().fill = vm.colorSelected;
-                if (canvasFabric.freeDrawingBrush) {
+                let type = canvasFabric.getActiveObject().get('type');
+                if(type == 'rect' || type == 'i-text') {
+                    canvasFabric.getActiveObject().fill = vm.colorSelected;
+                }
+
+                if(type == 'path') {
+                    canvasFabric.getActiveObject().stroke = vm.colorSelected;
+                }
+
+                if(canvasFabric.freeDrawingBrush) {
                     canvasFabric.freeDrawingBrush.color = vm.colorSelected;
                     canvasFabric.freeDrawingBrush.width = parseInt(vm.drawingPencil.lineWidth, 10) || 1;
                 }
+
+                canvasFabric.renderAll();
+            }
+        }
+
+        function changedDrawingPencilLineWidthSelection() {
+            if (canvasFabric.freeDrawingBrush) {
+                canvasFabric.freeDrawingBrush.color = vm.colorSelected;
+                canvasFabric.freeDrawingBrush.width = parseInt(vm.drawingPencil.lineWidth, 10) || 1;
             }
         }
 
@@ -376,27 +454,70 @@
         }
 
         function saveTicketFull() {
-            redmineService.uploadAttachments(vm.selectedSources).then(function(response) {
-                vm.createTicket.uploads = [];
-                for(let i = 0; i < response.length; i++) {
-                    vm.createTicket.uploads.push({
-                        token: response[i],
-                        filename: "image"+i+".png",
-                        content_type: "image/png"
-                    });
-                }
+            vm.errorMessage = "";
 
-                redmineService.createTicket(vm.createTicket).then(function(response) {
-                    ipcRenderer.send('redmine-save-favorite', vm.createTicket);
-                    if(vm.createTicket.reopen) {
-                        redmineService.updateUSReopen(vm.createTicket.parent_issue_id.id).then(function(response) {
+            if(vm.createTicket.project == '') {
+                vm.errorMessage = vm.errorMessage + "Vous devez sélectionner un projet <br />";
+            }
+
+            if(vm.createTicket.tracker == '') {
+                vm.errorMessage = vm.errorMessage + "Vous devez sélectionner un tracker <br />";
+            }
+
+            if(vm.createTicket.status == '') {
+                vm.errorMessage = vm.errorMessage + "Vous devez sélectionner un status <br />";
+            }
+
+            if(vm.createTicket.version == '') {
+                vm.errorMessage = vm.errorMessage + "Vous devez sélectionner une version <br />";
+            }
+
+            if(vm.createTicket.priority == '') {
+                vm.errorMessage = vm.errorMessage + "Vous devez sélectionner une priorité <br />";
+            }
+
+            if(vm.createTicket.title == '') {
+                vm.errorMessage = vm.errorMessage + "Vous devez ajouter un titre <br />";
+            }
+
+            if(vm.createTicket.description == '') {
+                vm.errorMessage = vm.errorMessage + "Vous devez ajouter une description <br />";
+            }
+
+            if(vm.errorMessage == "") {
+                redmineService.uploadAttachments(vm.selectedSources).then(function (response) {
+                    vm.createTicket.uploads = [];
+                    for (let i = 0; i < response.length; i++) {
+                        vm.createTicket.uploads.push({
+                            token: response[i],
+                            filename: "image" + i + ".png",
+                            content_type: "image/png"
                         });
                     }
 
-                    let window = remote.getCurrentWindow();
-                    window.close();
+                    redmineService.createTicket(vm.createTicket).then(function (response) {
+                        ipcRenderer.send('redmine-save-favorite', vm.createTicket);
+                        let urlRedirect = urlRedmine + "issues/" + response.data.issue.id;
+                        console.log(urlRedirect);
+                        let msg = {
+                            title: "Nouveau ticket créé #" + response.data.issue.id,
+                            message: "Un nouveau ticket a été créé <a href onclick='openLink(\"" + urlRedirect + "\");'>Accéder au ticket</a>",
+                            width: 440,
+                            timeout: 6000,
+                            focus: false
+                        };
+                        ipcRenderer.send('electron-toaster-message', msg);
+
+                        if (vm.createTicket.reopen) {
+                            redmineService.updateUSReopen(vm.createTicket.parent_issue_id.id).then(function (response) {
+                            });
+                        }
+
+                        //let window = remote.getCurrentWindow();
+                        //window.close();
+                    });
                 });
-            });
+            }
         }
 
         function resetCreateTicket() {
@@ -418,11 +539,6 @@
 
         $scope.$watch(function () {
             return vm.drawingPencil.lineWidth;
-        }, function() {
-            if (canvasFabric.freeDrawingBrush) {
-                canvasFabric.freeDrawingBrush.color = vm.colorSelected;
-                canvasFabric.freeDrawingBrush.width = parseInt(vm.drawingPencil.lineWidth, 10) || 1;
-            }
-        });
+        }, changedDrawingPencilLineWidthSelection);
     }
 })();
