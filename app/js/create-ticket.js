@@ -11,6 +11,7 @@
         const {ipcRenderer, desktopCapturer, remote} = require('electron');
 
         let urlRedmine = '';
+        let dirnameElement = '';
 
         var vm = this;
         var started = false;
@@ -99,6 +100,7 @@
 
         ipcRenderer.on('redmine-return', (event, arg) => {
             urlRedmine =  arg.url;
+            dirnameElement = arg.dirname;
             redmineService.setApiKey(arg.apikey, arg.url);
             init();
             ipcRenderer.send('redmine-get-favorite', {});
@@ -500,7 +502,8 @@
                             message: "Un nouveau ticket a été créé <a href onclick='openLink(\"" + urlRedirect + "\");'>Accéder au ticket</a>",
                             width: 440,
                             timeout: 6000,
-                            focus: false
+                            focus: false,
+                            htmlFile: 'file://' + dirnameElement + '/templates/toast-ticket-created.html?'
                         };
                         ipcRenderer.send('electron-toaster-message', msg);
 
@@ -509,8 +512,8 @@
                             });
                         }
 
-                        //let window = remote.getCurrentWindow();
-                        //window.close();
+                        let window = remote.getCurrentWindow();
+                        window.close();
                     });
                 });
             }

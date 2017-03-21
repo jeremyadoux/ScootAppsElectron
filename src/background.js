@@ -69,6 +69,7 @@ ipcMain.on('redmine-save', (event, arg) => {
 
 ipcMain.on('redmine-get', (event, arg) => {
     storage.get(env.redmineKey, (error, redmineKey) => {
+        redmineKey.dirname = __dirname;
         event.sender.send('redmine-return', redmineKey);
     });
 });
