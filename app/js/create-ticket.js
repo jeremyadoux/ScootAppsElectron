@@ -468,10 +468,6 @@
                 vm.errorMessage = vm.errorMessage + "Vous devez sélectionner un status <br />";
             }
 
-            if(vm.createTicket.version == '') {
-                vm.errorMessage = vm.errorMessage + "Vous devez sélectionner une version <br />";
-            }
-
             if(vm.createTicket.priority == '') {
                 vm.errorMessage = vm.errorMessage + "Vous devez sélectionner une priorité <br />";
             }
