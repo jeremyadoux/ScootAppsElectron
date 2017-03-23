@@ -77,6 +77,10 @@
             });
         }
 
+        function getCategories(project) {
+            return $http.get(redmineUrl + "projects/" + project.id + '/issue_categories.json?limit=200', {headers: headersRedmine});
+        }
+
         function versionProject(project) {
             return $http.get(redmineUrl + "projects/" + project.id + '/versions.json?limit=200', {headers: headersRedmine});
         }
@@ -106,10 +110,12 @@
                 }
             };
 
-            console.log(ticket);
-
             if(ticket.version != "") {
                 data.issue.fixed_version_id = ticket.version.id;
+            }
+
+            if(ticket.category != "") {
+                data.issue.category_id = ticket.category.id;
             }
 
             if(ticket.parent_issue_id != 0) {
@@ -187,6 +193,7 @@
         this.getTicketUS = getTicketUS;
         this.updateUSReopen = updateUSReopen;
         this.setApiKey = setApiKey;
+        this.getCategories = getCategories;
 
         /*return {
             favoriteProject: favoriteProject,

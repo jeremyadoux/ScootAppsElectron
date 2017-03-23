@@ -283,6 +283,33 @@
                     <div class="container-fluid">
                         <div class="row">
 
+                            <label for="inputCategory" class="control-label col-sm-2">Catégorie</label>
+
+                            <div class="col-sm-8">
+                                <ui-select id="inputCategory" ng-model="ctc.createTicket.category">
+                                    <ui-select-match>
+                                        <span ng-bind="ctc.createTicket.category.name"></span>
+                                    </ui-select-match>
+                                    <ui-select-choices
+                                        repeat="item in (ctc.dataSelect.categories | filter: $select.search) track by item.id">
+                                        <span ng-bind="item.name"></span>
+                                    </ui-select-choices>
+                                </ui-select>
+                            </div>
+                            <div class="col-sm-2">
+                                <button class="btn btn-danger" type="button" aria-label="Effacer la sélection"
+                                        ng-click="ctc.createTicket.category = ''">
+                                    <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+
+                    <div class="container-fluid">
+                        <div class="row">
+
                             <label for="inputVersion" class="control-label col-sm-2">Version cible</label>
 
                             <div class="col-sm-8">

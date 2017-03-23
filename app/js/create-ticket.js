@@ -51,6 +51,7 @@
         vm.currentScreen = 0;
         vm.drawingMode = "pointer";
         vm.objectMode = "pointer";
+
         vm.colorSelected = "#CE2A0B";
         vm.drawingPencil = {
             lineWidth:5
@@ -67,11 +68,13 @@
             priority: "",
             title: "",
             description: "",
+            category: "",
             parent_issue_id: 0,
             reopen: false
         };
         vm.dataSelect = {
             projects: [],
+            categories: [],
             tracker: [],
             status: [],
             version: [],
@@ -86,6 +89,7 @@
                 tracker: "",
                 status: "",
                 version: "",
+                category: "",
                 priority: "",
                 title: "",
                 description: "",
@@ -112,6 +116,7 @@
                 vm.createTicket.tracker = arg.tracker;
                 vm.createTicket.status = arg.status;
                 vm.createTicket.version = arg.version;
+                vm.createTicket.category = arg.category;
                 vm.createTicket.priority = arg.priority;
                 vm.createTicket.parent_issue_id = arg.parent_issue_id;
 
@@ -319,7 +324,6 @@
 
         function beforeSelectionClearedCanvas(e) {
             let clearedObject = canvasFabric.getActiveObject();
-            console.log(clearedObject);
             if(typeof(clearedObject) !== 'undefined' && clearedObject != null) {
                 if(clearedObject.get('type') == 'i-text') {
                     if(clearedObject.getText() == '') {
@@ -329,7 +333,9 @@
                 if(vm.drawingMode == 'pointer') {
                     vm.objectMode = 'pointer';
                 }
-                $scope.$apply();
+                if ($scope.$root.$$phase != '$apply' && $scope.$root.$$phase != '$digest') {
+                    $scope.$apply();
+                }
             }
         }
 
@@ -339,14 +345,18 @@
                 let type = selectedObject.get('type');
                 if(type == 'rect') {
                     vm.objectMode = 'square';
+                    vm.colorSelected = selectedObject.fill;
                 }
 
                 if(type == 'i-text') {
                     vm.objectMode = 'text';
+                    vm.colorSelected = selectedObject.fill;
                 }
 
                 if(type == 'path') {
                     vm.objectMode = 'pencil';
+                    vm.colorSelected = selectedObject.stroke;
+                    vm.drawingPencil.lineWidth = 5;
                 }
 
                 $scope.$apply();
@@ -415,6 +425,10 @@
                     }
 
                     vm.createTicket.version = '';
+                });
+                redmineService.getCategories(project).then(function (results) {
+                    vm.dataSelect.categories = results.data.issue_categories;
+                    vm.createTicket.category = '';
                 });
                 redmineService.trackerList().then(function (results) {
                     vm.dataSelect.tracker = results.data.trackers;
@@ -496,7 +510,6 @@
                     redmineService.createTicket(vm.createTicket).then(function (response) {
                         ipcRenderer.send('redmine-save-favorite', vm.createTicket);
                         let urlRedirect = urlRedmine + "issues/" + response.data.issue.id;
-                        console.log(urlRedirect);
                         let msg = {
                             title: "Nouveau ticket créé #" + response.data.issue.id,
                             message: "Un nouveau ticket a été créé <a href onclick='openLink(\"" + urlRedirect + "\");'>Accéder au ticket</a>",
