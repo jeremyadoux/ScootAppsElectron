@@ -15,7 +15,7 @@
 
         var vm = this;
         var started = false;
-        var rect, isDown, origX, origY;
+        var rect, line, isDown, origX, origY;
         var x = 0;
         var y = 0;
 
@@ -53,6 +53,9 @@
         vm.objectMode = "pointer";
 
         vm.colorSelected = "#CE2A0B";
+        vm.rect = {
+            opacity: 0.2
+        };
         vm.drawingPencil = {
             lineWidth:5
         };
@@ -251,6 +254,8 @@
                     origX = pointer.x;
                     origY = pointer.y;
                     var pointer = canvasFabric.getPointer(o.e);
+                    let rgb = hexToRgb(vm.colorSelected);
+
                     rect = new fabric.Rect({
                         left: origX,
                         top: origY,
@@ -259,8 +264,10 @@
                         width: pointer.x - origX,
                         height: pointer.y - origY,
                         angle: 0,
-                        fill: vm.colorSelected,
-                        opacity: 0.2,
+                        fill: 'rgba('+rgb.r+','+rgb.g+','+rgb.b+','+vm.rect.opacity+')',
+                        opacity: 1,
+                        stroke: vm.colorSelected,
+                        strokeWidth: 1,
                         transparentCorners: false
                     });
                     canvasFabric.add(rect);
@@ -289,6 +296,24 @@
 
                     $scope.$apply();
                 }
+                if(vm.drawingMode == "arrow") {
+                    isDown = true;
+                    var pointer = canvasFabric.getPointer(o.e);
+                    var points = [ pointer.x, pointer.y, pointer.x, pointer.y ];
+
+
+                    
+
+
+                    line = new fabric.Line(points, {
+                        strokeWidth: 5,
+                        fill: vm.colorSelected,
+                        stroke: vm.colorSelected,
+                        originX: 'center',
+                        originY: 'center'
+                    });
+                    canvasFabric.add(line);
+                }
             }
         }
 
@@ -309,15 +334,25 @@
 
                 canvasFabric.renderAll();
             }
+            if(vm.drawingMode == "arrow") {
+                var pointer = canvasFabric.getPointer(o.e);
+                line.set({ x2: pointer.x, y2: pointer.y });
+                canvasFabric.renderAll();
+            }
             $scope.$apply();
         }
 
         function mouseupCanvas(o) {
             isDown = false;
             if(vm.drawingMode == "square") {
-                rect.setCoords();
-                canvasFabric.deactivateAll().renderAll();
                 changeDrawingMode('pointer');
+                rect.setCoords();
+                canvasFabric.setActiveObject(rect);
+            }
+            if(vm.drawingMode == "arrow") {
+                changeDrawingMode('pointer');
+                line.setCoords();
+                canvasFabric.setActiveObject(line);
             }
             $scope.$apply();
         }
@@ -345,7 +380,10 @@
                 let type = selectedObject.get('type');
                 if(type == 'rect') {
                     vm.objectMode = 'square';
-                    vm.colorSelected = selectedObject.fill;
+
+                    let colorResult = rgbToHex(selectedObject.fill);
+                    vm.colorSelected = colorResult.hex;
+                    vm.rect.opacity = colorResult.opacity;
                 }
 
                 if(type == 'i-text') {
@@ -368,7 +406,13 @@
         function changedColorSelection(color) {
             if(canvasFabric.getActiveObject()) {
                 let type = canvasFabric.getActiveObject().get('type');
-                if(type == 'rect' || type == 'i-text') {
+                if(type == 'rect') {
+                    let rgb = hexToRgb(vm.colorSelected);
+                    canvasFabric.getActiveObject().fill = 'rgba('+rgb.r+','+rgb.g+','+rgb.b+','+vm.rect.opacity+')';
+                    canvasFabric.getActiveObject().stroke = vm.colorSelected;
+                }
+
+                if(type == 'i-text') {
                     canvasFabric.getActiveObject().fill = vm.colorSelected;
                 }
 
@@ -376,9 +420,23 @@
                     canvasFabric.getActiveObject().stroke = vm.colorSelected;
                 }
 
+                canvasFabric.renderAll();
+            } else {
                 if(canvasFabric.freeDrawingBrush) {
                     canvasFabric.freeDrawingBrush.color = vm.colorSelected;
                     canvasFabric.freeDrawingBrush.width = parseInt(vm.drawingPencil.lineWidth, 10) || 1;
+                }
+            }
+        }
+
+        function changedRectOpacity() {
+            if(canvasFabric.getActiveObject()) {
+                let type = canvasFabric.getActiveObject().get('type');
+
+                if(type == 'rect') {
+                    let rgb = hexToRgb(vm.colorSelected);
+                    canvasFabric.getActiveObject().fill = 'rgba('+rgb.r+','+rgb.g+','+rgb.b+','+vm.rect.opacity+')';
+                    canvasFabric.getActiveObject().stroke = vm.colorSelected;
                 }
 
                 canvasFabric.renderAll();
@@ -386,6 +444,14 @@
         }
 
         function changedDrawingPencilLineWidthSelection() {
+            if(canvasFabric.getActiveObject()) {
+                let type = canvasFabric.getActiveObject().get('type');
+
+                if(type == 'path') {
+                    canvasFabric.getActiveObject().strokeWidth = parseInt(vm.drawingPencil.lineWidth, 10) || 1;
+                    canvasFabric.renderAll();
+                }
+            }
             if (canvasFabric.freeDrawingBrush) {
                 canvasFabric.freeDrawingBrush.color = vm.colorSelected;
                 canvasFabric.freeDrawingBrush.width = parseInt(vm.drawingPencil.lineWidth, 10) || 1;
@@ -537,6 +603,40 @@
             window.close();
         }
 
+        function hexToRgb(hex) {
+            let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function componentToHex(c) {
+            let hex = c.toString(16);
+            return hex.length == 1 ? "0" + hex : hex;
+        }
+
+        function rgbToHex(rgba) {
+            let regex = /\((.*)\)/g;
+            let resultFirst = regex.exec(rgba);
+            let resultExploded = resultFirst[1].split(",");
+            console.log(resultExploded);
+
+            let rgb = rgba.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
+            let hexa = (rgb && rgb.length === 4) ? "#" +
+            ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+            ("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
+            ("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : '';
+
+
+            let result = {
+                hex: hexa,
+                opacity: resultExploded[3]
+            };
+            return result;
+        }
+
         $scope.$watch(function () {
             return vm.createTicket.project;
         }, changeProjectSelection);
@@ -552,5 +652,9 @@
         $scope.$watch(function () {
             return vm.drawingPencil.lineWidth;
         }, changedDrawingPencilLineWidthSelection);
+
+        $scope.$watch(function () {
+            return vm.rect.opacity;
+        }, changedRectOpacity)
     }
 })();

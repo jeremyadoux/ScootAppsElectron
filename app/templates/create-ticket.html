@@ -73,6 +73,10 @@
                     <label for="inputLineWidth">Taille de la ligne</label>
                     <input id="inputLineWidth" ng-model="ctc.drawingPencil.lineWidth" type="text">
                 </div>
+                <div class="form-group" ng-show="ctc.objectMode == 'square'">
+                    <label for="inputRectOpacity">Opacité</label>
+                    <input id="inputRectOpacity" ng-model="ctc.rect.opacity" type="text">
+                </div>
             </form>
         </div>
     </div>
@@ -89,6 +93,12 @@
                     <button class="btn btn-default" type="button" aria-label="Crayon"
                             ng-click="ctc.changeDrawingMode('pencil')" ng-class="{'active': ctc.drawingMode == 'pencil'}">
                         <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                    </button>
+                </div>
+                <div class="col-md-12">
+                    <button class="btn btn-default" type="button" aria-label="Ajouter une flèche"
+                            ng-click="ctc.changeDrawingMode('arrow')" ng-class="{'active': ctc.drawingMode == 'arrow'}">
+                        <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
                     </button>
                 </div>
                 <div class="col-md-12">

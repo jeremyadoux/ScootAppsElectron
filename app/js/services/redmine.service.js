@@ -32,69 +32,127 @@
 
         function favoriteProject() {
             return new Promise(function(resolve, reject) {
-                $http.get(redmineUrl + 'projects.json?limit=200', {headers: headersRedmine}).then(function(results) {
-                    let projectList = results.data.projects;
-                    let newProjectList = [];
+                if(redmineUrl != "") {
+                    $http.get(redmineUrl + 'projects.json?limit=200', {headers: headersRedmine}).then(function (results) {
+                        let projectList = results.data.projects;
+                        let newProjectList = [];
 
-                    let options = {
-                        idKey: 'id',
-                        parentKey: 'parent'
-                    };
+                        let options = {
+                            idKey: 'id',
+                            parentKey: 'parent'
+                        };
 
-                    for(let i = 0; i < projectList.length; i++) {
-                        if(projectList[i].parent) {
-                            projectList[i].parent = projectList[i].parent.id;
-                        }
+                        for (let i = 0; i < projectList.length; i++) {
+                            if (projectList[i].parent) {
+                                projectList[i].parent = projectList[i].parent.id;
+                            }
 
-                        if(projectList[i].status == 1) {
-                            newProjectList.push(projectList[i]);
-                        }
-                    }
-
-                    let projectTree = listToTree(newProjectList, options);
-
-                    let treeLinear = function(tree, rendered, option) {
-                        for(let i=0; i < tree.length; i++) {
-                            if(tree[i].id != 16) {
-                                tree[i].name = option + " " + tree[i].name;
-                                rendered.push(tree[i]);
-                                if (tree[i].children.length > 0) {
-                                    rendered = treeLinear(tree[i].children, rendered, option + '--');
-                                }
+                            if (projectList[i].status == 1) {
+                                newProjectList.push(projectList[i]);
                             }
                         }
 
-                        return rendered;
-                    };
+                        let projectTree = listToTree(newProjectList, options);
 
-                    let returnArrayResult = treeLinear(projectTree, [], '');
+                        let treeLinear = function (tree, rendered, option) {
+                            for (let i = 0; i < tree.length; i++) {
+                                if (tree[i].id != 16) {
+                                    tree[i].name = option + " " + tree[i].name;
+                                    rendered.push(tree[i]);
+                                    if (tree[i].children.length > 0) {
+                                        rendered = treeLinear(tree[i].children, rendered, option + '--');
+                                    }
+                                }
+                            }
 
-                    //console.log(returnArrayResult);
+                            return rendered;
+                        };
 
-                    resolve(returnArrayResult);
-                });
+                        let returnArrayResult = treeLinear(projectTree, [], '');
 
+                        //console.log(returnArrayResult);
+
+                        resolve(returnArrayResult);
+                    });
+                } else {
+                    resolve([]);
+                }
             });
         }
 
         function getCategories(project) {
-            return $http.get(redmineUrl + "projects/" + project.id + '/issue_categories.json?limit=200', {headers: headersRedmine});
+            if(redmineUrl != '') {
+                return $http.get(redmineUrl + "projects/" + project.id + '/issue_categories.json?limit=200', {headers: headersRedmine});
+            } else {
+                return new Promise(function(resolve, reject) {
+                    let result = {
+                        data: {
+                            issue_categories: []
+                        }
+                    };
+                    resolve(result);
+                });
+            }
         }
 
         function versionProject(project) {
-            return $http.get(redmineUrl + "projects/" + project.id + '/versions.json?limit=200', {headers: headersRedmine});
+            if(redmineUrl != '') {
+                return $http.get(redmineUrl + "projects/" + project.id + '/versions.json?limit=200', {headers: headersRedmine});
+            } else {
+                return new Promise(function(resolve, reject) {
+                    let result = {
+                        data: {
+                            versions: []
+                        }
+                    };
+                    resolve(result);
+                });
+            }
         }
 
         function trackerList() {
-            return $http.get(redmineUrl + 'trackers.json?limit=200', {headers: headersRedmine});
+            if(redmineUrl != '') {
+                return $http.get(redmineUrl + 'trackers.json?limit=200', {headers: headersRedmine});
+            } else {
+                return new Promise(function(resolve, reject) {
+                    let result = {
+                        data: {
+                            trackers: []
+                        }
+                    };
+                    resolve(result);
+                });
+            }
         }
 
         function statusList() {
-            return $http.get(redmineUrl + 'issue_statuses.json?limit=200', {headers: headersRedmine});
+            if(redmineUrl != '') {
+                return $http.get(redmineUrl + 'issue_statuses.json?limit=200', {headers: headersRedmine});
+            } else {
+                return new Promise(function(resolve, reject) {
+                    let result = {
+                        data: {
+                            issue_statuses: []
+                        }
+                    };
+                    resolve(result);
+                });
+            }
         }
 
         function priorityList() {
-            return $http.get(redmineUrl + 'enumerations/issue_priorities.json?limit=200', {headers: headersRedmine});
+            if(redmineUrl != '') {
+                return $http.get(redmineUrl + 'enumerations/issue_priorities.json?limit=200', {headers: headersRedmine});
+            } else {
+                return new Promise(function(resolve, reject) {
+                    let result = {
+                        data: {
+                            issue_priorities: []
+                        }
+                    };
+                    resolve(result);
+                });
+            }
         }
 
         function createTicket(ticket) {
@@ -129,7 +187,7 @@
             return $http({
                 url: redmineUrl + 'issues.json',
                 method: "GET",
-                params: {tracker_id: trackerId, fixed_version_id: versionId, project_id: projectId},
+                params: {tracker_id: trackerId, fixed_version_id: versionId, project_id: projectId, status_id: '*'},
                 headers: headersRedmine
             });
         }
