@@ -162,7 +162,7 @@ function openWindowsCreateTicket() {
         toaster.init(winCreateTicket);
 
         // and load the index.html of the app.
-        winCreateTicket.openDevTools();
+        //winCreateTicket.openDevTools();
         winCreateTicket.loadURL(`file://${__dirname}/templates/create-ticket.html`);
         winCreateTicket.maximize();
 
