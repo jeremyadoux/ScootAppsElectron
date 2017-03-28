@@ -30,49 +30,13 @@
             };
         }
 
-        function favoriteProject() {
+        function favoriteProject(offset=0) {
             return new Promise(function(resolve, reject) {
                 if(redmineUrl != "") {
-                    $http.get(redmineUrl + 'projects.json?limit=200', {headers: headersRedmine}).then(function (results) {
-                        let projectList = results.data.projects;
-                        let newProjectList = [];
-
-                        let options = {
-                            idKey: 'id',
-                            parentKey: 'parent'
-                        };
-
-                        for (let i = 0; i < projectList.length; i++) {
-                            if (projectList[i].parent) {
-                                projectList[i].parent = projectList[i].parent.id;
-                            }
-
-                            if (projectList[i].status == 1) {
-                                newProjectList.push(projectList[i]);
-                            }
-                        }
-
-                        let projectTree = listToTree(newProjectList, options);
-
-                        let treeLinear = function (tree, rendered, option) {
-                            for (let i = 0; i < tree.length; i++) {
-                                if (tree[i].id != 16) {
-                                    tree[i].name = option + " " + tree[i].name;
-                                    rendered.push(tree[i]);
-                                    if (tree[i].children.length > 0) {
-                                        rendered = treeLinear(tree[i].children, rendered, option + '--');
-                                    }
-                                }
-                            }
-
-                            return rendered;
-                        };
-
-                        let returnArrayResult = treeLinear(projectTree, [], '');
-
-                        //console.log(returnArrayResult);
-
-                        resolve(returnArrayResult);
+                    loadProjectWithPagination().then(function(projectList) {
+                        prepareProjectList(projectList).then(function(result) {
+                            resolve(result);
+                        });
                     });
                 } else {
                     resolve([]);
@@ -82,7 +46,7 @@
 
         function getCategories(project) {
             if(redmineUrl != '') {
-                return $http.get(redmineUrl + "projects/" + project.id + '/issue_categories.json?limit=200', {headers: headersRedmine});
+                return $http.get(redmineUrl + "projects/" + project.id + '/issue_categories.json?limit=100', {headers: headersRedmine});
             } else {
                 return new Promise(function(resolve, reject) {
                     let result = {
@@ -97,7 +61,7 @@
 
         function versionProject(project) {
             if(redmineUrl != '') {
-                return $http.get(redmineUrl + "projects/" + project.id + '/versions.json?limit=200', {headers: headersRedmine});
+                return $http.get(redmineUrl + "projects/" + project.id + '/versions.json?limit=100', {headers: headersRedmine});
             } else {
                 return new Promise(function(resolve, reject) {
                     let result = {
@@ -110,24 +74,28 @@
             }
         }
 
-        function trackerList() {
-            if(redmineUrl != '') {
-                return $http.get(redmineUrl + 'trackers.json?limit=200', {headers: headersRedmine});
-            } else {
-                return new Promise(function(resolve, reject) {
-                    let result = {
-                        data: {
-                            trackers: []
-                        }
-                    };
+        function trackerList(project) {
+            let result = {
+                data: {
+                    trackers: []
+                }
+            };
+
+            return new Promise(function(resolve, reject) {
+                if(redmineUrl != '') {
+                    $http.get(redmineUrl + 'projects/' + project.id + '.json?include=trackers', {headers: headersRedmine}).then(function (results) {
+                        result.data.trackers = results.data.project.trackers;
+                        resolve(result);
+                    });
+                } else {
                     resolve(result);
-                });
-            }
+                }
+            });
         }
 
         function statusList() {
             if(redmineUrl != '') {
-                return $http.get(redmineUrl + 'issue_statuses.json?limit=200', {headers: headersRedmine});
+                return $http.get(redmineUrl + 'issue_statuses.json?limit=100', {headers: headersRedmine});
             } else {
                 return new Promise(function(resolve, reject) {
                     let result = {
@@ -142,7 +110,7 @@
 
         function priorityList() {
             if(redmineUrl != '') {
-                return $http.get(redmineUrl + 'enumerations/issue_priorities.json?limit=200', {headers: headersRedmine});
+                return $http.get(redmineUrl + 'enumerations/issue_priorities.json?limit=100', {headers: headersRedmine});
             } else {
                 return new Promise(function(resolve, reject) {
                     let result = {
@@ -163,10 +131,13 @@
                     status_id: ticket.status.id,
                     priority_id: ticket.priority.id,
                     subject: ticket.title,
-                    description: ticket.description,
-                    uploads: ticket.uploads
+                    description: ticket.description
                 }
             };
+
+            if(ticket.uploads.length > 0) {
+                data.issue.uploads = ticket.uploads;
+            }
 
             if(ticket.version != "") {
                 data.issue.fixed_version_id = ticket.version.id;
@@ -224,6 +195,21 @@
             return Promise.all(promises);
         }
 
+        function loadProjectWithPagination(offset=0, limit=100, projectList=[]) {
+            return new Promise(function(resolve, reject) {
+                $http.get(redmineUrl + 'projects.json?limit='+limit+'&offset='+offset, {headers: headersRedmine}).then(function (results) {
+                    projectList = projectList.concat(results.data.projects);
+                    if(results.data.projects.length == limit) {
+                        loadProjectWithPagination(offset+limit, limit, projectList).then(function(result) {
+                           resolve(result);
+                        });
+                    } else {
+                        resolve(projectList);
+                    }
+                });
+            });
+        }
+
         function b64toBlob(b64Data, contentType, sliceSize) {
             contentType = contentType || '';
             sliceSize = sliceSize || 512;
@@ -239,6 +225,48 @@
                 byteArrays.push(byteArray);
             }
             return new Blob(byteArrays, {type: contentType});
+        }
+
+        function prepareProjectList(projectList) {
+            return new Promise(function(resolve, reject) {
+                let newProjectList = [];
+
+
+                let options = {
+                    idKey: 'id',
+                    parentKey: 'parent'
+                };
+
+                for (let i = 0; i < projectList.length; i++) {
+                    if (projectList[i].parent) {
+                        projectList[i].parent = projectList[i].parent.id;
+                    }
+
+                    if (projectList[i].status == 1) {
+                        newProjectList.push(projectList[i]);
+                    }
+                }
+
+                let projectTree = listToTree(newProjectList, options);
+
+                let treeLinear = function (tree, rendered, option) {
+                    for (let i = 0; i < tree.length; i++) {
+                        if (tree[i].id != 16) {
+                            tree[i].name = option + " " + tree[i].name;
+                            rendered.push(tree[i]);
+                            if (tree[i].children.length > 0) {
+                                rendered = treeLinear(tree[i].children, rendered, option + '--');
+                            }
+                        }
+                    }
+
+                    return rendered;
+                };
+
+                let returnArrayResult = treeLinear(projectTree, [], '');
+
+                resolve(returnArrayResult);
+            });
         }
 
         this.favoriteProject = favoriteProject;

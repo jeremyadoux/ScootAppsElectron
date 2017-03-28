@@ -43,8 +43,10 @@
         vm.removeUSParent = removeUSParent;
         vm.oneClickedImage = oneClickedImage;
         vm.resetCreateTicket = resetCreateTicket;
+        vm.noScreenGoTO = noScreenGoTO;
 
         //Attributes
+        vm.ready = false;
         vm.sources = [];
         vm.selectedSources = [];
         vm.step = 1;
@@ -150,6 +152,7 @@
                     }
                 }
 
+                vm.ready = true;
                 $scope.$apply();
             });
         }
@@ -180,6 +183,14 @@
             }
 
             return false;
+        }
+
+        function noScreenGoTO() {
+            redmineService.favoriteProject().then(function (results) {
+                vm.dataSelect.projects = results;
+            });
+            vm.selectedSources = [];
+            vm.step = 3;
         }
 
         function currentScreenObj() {
@@ -302,7 +313,7 @@
                     var points = [ pointer.x, pointer.y, pointer.x, pointer.y ];
 
 
-                    
+
 
 
                     line = new fabric.Line(points, {
@@ -496,7 +507,7 @@
                     vm.dataSelect.categories = results.data.issue_categories;
                     vm.createTicket.category = '';
                 });
-                redmineService.trackerList().then(function (results) {
+                redmineService.trackerList(project).then(function (results) {
                     vm.dataSelect.tracker = results.data.trackers;
                     for (let index in vm.dataSelect.tracker) {
                         if (vm.dataSelect.tracker[index].id == 37 && vm.createTicket.tracker == '') {
@@ -563,14 +574,24 @@
             }
 
             if(vm.errorMessage == "") {
-                redmineService.uploadAttachments(vm.selectedSources).then(function (response) {
-                    vm.createTicket.uploads = [];
-                    for (let i = 0; i < response.length; i++) {
-                        vm.createTicket.uploads.push({
-                            token: response[i],
-                            filename: "image" + i + ".png",
-                            content_type: "image/png"
+                new Promise(function(resolve, reject) {
+                    if(vm.selectedSources.length > 0) {
+                        redmineService.uploadAttachments(vm.selectedSources).then(function (response) {
+                           resolve(response);
                         });
+                    } else {
+                        resolve([]);
+                    }
+                }).then(function(response) {
+                    vm.createTicket.uploads = [];
+                    if(response.length > 0) {
+                        for (let i = 0; i < response.length; i++) {
+                            vm.createTicket.uploads.push({
+                                token: response[i],
+                                filename: "image" + i + ".png",
+                                content_type: "image/png"
+                            });
+                        }
                     }
 
                     redmineService.createTicket(vm.createTicket).then(function (response) {

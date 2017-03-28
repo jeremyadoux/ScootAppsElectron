@@ -15,7 +15,7 @@ var tray = null;
 var WS = null;
 
 var scootAppsAutoLauncher = new AutoLaunch({
-    name: 'ScootApps'
+    name: 'ScoutApps'
 });
 
 app.on('ready', () => {

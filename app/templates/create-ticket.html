@@ -16,7 +16,7 @@
     <div class="row">
         <div class="col-md-12">
             <div class="alert alert-info" role="alert">
-                <p class="lead">Vous devez sélectionner 1 ou plusieurs écrans pour continuer.</p>
+                <p class="lead">Vous pouvez sélectionner 1 ou plusieurs écrans pour continuer.</p>
             </div>
         </div>
     </div>
@@ -26,6 +26,9 @@
                 <div class="col-md-12">
                     <button ng-show="ctc.oneClickedImage()" ng-click="ctc.saveForm()" type="button"
                             class="btn btn-info">Continuer
+                    </button>
+                    <button ng-show="ctc.ready" class="btn btn-warning" type="button"
+                            aria-label="Go to final" ng-click="ctc.noScreenGoTO()">Continuer sans sélectionner de screen
                     </button>
                     <button ng-show="ctc.oneClickedImage()" class="btn btn-danger" type="button"
                             aria-label="Go to ticket" ng-click="ctc.resetCreateTicket()">Annuler
@@ -45,6 +48,9 @@
                 <div class="col-md-12">
                     <button ng-show="ctc.oneClickedImage()" ng-click="ctc.saveForm()" type="button"
                             class="btn btn-info">Continuer
+                    </button>
+                    <button ng-show="ctc.ready" class="btn btn-warning" type="button"
+                            aria-label="Go to final" ng-click="ctc.noScreenGoTO()">Continuer sans sélectionner de screen
                     </button>
                     <button ng-show="ctc.oneClickedImage()" class="btn btn-danger" type="button"
                             aria-label="Go to ticket" ng-click="ctc.resetCreateTicket()">Annuler
