@@ -26,7 +26,9 @@
                     <div class="col-md-4" ng-repeat="i in [0,1,2]">
                         <p ng-class="{'bg-primary': ctc.sources[$parent.$index+i].clicked}" style="padding: 10px;">
                             <img ng-src="{{ctc.sources[$parent.$index+i].urlTH}}"
-                                 ng-click="ctc.clickedImage(ctc.sources[$parent.$index+i])" class="img-thumbnail"
+                                 ng-click="ctc.clickedImage(ctc.sources[$parent.$index+i])"
+                                 ng-dblclick="ctc.doubleClickedImage(ctc.sources[$parent.$index+i])"
+                                 class="img-thumbnail"
                                  style="max-height: 250px;">
                         </p>
                     </div>
@@ -56,7 +58,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-12 toolbars-scout">
                 <form class="form-inline">
                     <div class="form-group" ng-show="ctc.objectMode != 'pointer'">
                         <label for="inputColor">Couleur</label>

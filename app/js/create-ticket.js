@@ -38,6 +38,7 @@
         vm.saveTicketFull = saveTicketFull;
         vm.loadParentUS = loadParentUS;
         vm.clickedImage = clickedImage;
+        vm.doubleClickedImage = doubleClickedImage;
         vm.removeSelectedFrabic = removeSelectedFrabic;
         vm.razTicket = razTicket;
         vm.removeUSParent = removeUSParent;
@@ -158,6 +159,7 @@
         }
 
         function saveForm() {
+            vm.selectedSources = [];
             for (let source of vm.sources) {
                 if(source.clicked) {
                     vm.selectedSources.push(source);
@@ -173,6 +175,11 @@
             } else {
                 img.clicked = true;
             }
+        }
+
+        function doubleClickedImage(img) {
+            img.clicked = true;
+            vm.saveForm();
         }
 
         function oneClickedImage() {
@@ -356,9 +363,7 @@
         function mouseupCanvas(o) {
             isDown = false;
             if(vm.drawingMode == "square") {
-                changeDrawingMode('pointer');
                 rect.setCoords();
-                canvasFabric.setActiveObject(rect);
             }
             if(vm.drawingMode == "arrow") {
                 changeDrawingMode('pointer');
@@ -677,5 +682,13 @@
         $scope.$watch(function () {
             return vm.rect.opacity;
         }, changedRectOpacity)
+
+        document.addEventListener("keydown", function(e) {
+            if(vm.step == 2) {
+                if(vm.objectMode != 'text') {
+
+                }
+            }
+        }, false);
     }
 })();
