@@ -23,6 +23,7 @@
     "angular-sanitize": "1.4",
     "angular-ui-select": "latest",
     "jscolor": "^1.4.2",
-    "octicons": "^5.0.1"
+    "octicons": "^5.0.1",
+    "angular-chart.js" : "latest"
   }
 }

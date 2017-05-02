@@ -10,6 +10,7 @@ let toaster = new Toaster();
 var winAccount = null;
 var winFavorite = null;
 var winCreateTicket = null;
+var winStats = null;
 var login = null;
 var tray = null;
 var WS = null;
@@ -109,7 +110,6 @@ ipcMain.on('load-group-list', (event, arg) => {
 });
 
 ipcMain.on('save-group-favorite', (event, arg) => {
-    console.log(app.getPath('userData'));
     storage.set(env.storageFavoriteGroup, arg, (error) => {
         if (error) throw error;
         createTray();
@@ -162,7 +162,7 @@ function openWindowsCreateTicket() {
         toaster.init(winCreateTicket);
 
         // and load the index.html of the app.
-        winCreateTicket.openDevTools();
+        //winCreateTicket.openDevTools();
         winCreateTicket.loadURL(`file://${__dirname}/templates/ticket-index.html`);
         winCreateTicket.maximize();
 
@@ -170,6 +170,28 @@ function openWindowsCreateTicket() {
         winCreateTicket.on('close', (e) => {
             e.preventDefault();
             winCreateTicket.hide();
+        });
+    }
+}
+
+function openWindowsStats() {
+    if(winStats != null) {
+        winStats.show();
+    } else {
+        // Create the browser window.
+        winStats = new BrowserWindow({width: 1680, height: 960, icon:  __dirname + '/images/scout.ico'});
+
+        toaster.init(winStats);
+
+        // and load the index.html of the app.
+        winStats.openDevTools();
+        winStats.loadURL(`file://${__dirname}/redmine/statistiques/index.html`);
+        winStats.maximize();
+
+        // Emitted when the window is closed.
+        winStats.on('close', (e) => {
+            e.preventDefault();
+            winStats.hide();
         });
     }
 }
@@ -237,6 +259,10 @@ function createTray() {
 
         menu.append(new MenuItem({label: "Créer un ticket", click() {
             openWindowsCreateTicket();
+        }}));
+
+        menu.append(new MenuItem({label: "Stats", click() {
+            openWindowsStats();
         }}));
 
         menu.append(new MenuItem({type: 'separator'}));

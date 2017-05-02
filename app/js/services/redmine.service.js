@@ -123,6 +123,24 @@
             }
         }
 
+        function loadTicket(where) {
+            return $http({
+                url: redmineUrl + 'issues.json',
+                method: "GET",
+                params: where,
+                headers: headersRedmine
+            });
+        }
+
+        function getTicket(id, include) {
+            return $http({
+                url: redmineUrl + 'issues/'+id+'.json',
+                method: "GET",
+                params: include,
+                headers: headersRedmine
+            });
+        }
+
         function createTicket(ticket) {
             let data = {
                 issue: {
@@ -280,6 +298,8 @@
         this.updateUSReopen = updateUSReopen;
         this.setApiKey = setApiKey;
         this.getCategories = getCategories;
+        this.loadTicket = loadTicket;
+        this.getTicket = getTicket;
 
         /*return {
             favoriteProject: favoriteProject,
