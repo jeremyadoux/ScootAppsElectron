@@ -104,7 +104,8 @@
 
                 if(vm.isTeamProject) {
                     //Execute Graph code for team graphs
-                    console.log(vm.initData.versions);
+
+                    calculTeamInformations(vm.project, vm.initData.versions);
                 }
             });
         }
@@ -229,19 +230,18 @@
                         let avancementUS = Math.ceil((data.nbUserStoryDown / data.nbUserStoryTotal) * 100);
                         let avancementPoints = Math.ceil((data.nbPointsDown / data.nbPointsTotal) * 100);
 
-
-                        vm.charts.globalInformationsPoint.labels.push(data.requirement.subject);
+                        vm.charts.globalInformationsPoint.labels.push(data.requirement.subject.substr(0, 30) + "...");
                         vm.charts.globalInformationsPoint.data[0].push(totals.ptRaf);
                         vm.charts.globalInformationsPoint.data[1].push(totals.ptFinish);
 
-                        vm.charts.globalInformationsUS.labels.push(data.requirement.subject);
+                        vm.charts.globalInformationsUS.labels.push(data.requirement.subject.substr(0, 30) + "...");
                         vm.charts.globalInformationsUS.data[0].push(totals.usRaf);
                         vm.charts.globalInformationsUS.data[1].push(totals.usFinish);
                         vm.charts.globalInformationsUS.data[2].push(totals.usVide);
 
-                        vm.charts.avancementsUS.labels.push(data.requirement.subject);
+                        vm.charts.avancementsUS.labels.push(data.requirement.subject.substr(0, 30) + "...");
                         vm.charts.avancementsUS.data.push(avancementUS);
-                        vm.charts.avancementsPoint.labels.push(data.requirement.subject);
+                        vm.charts.avancementsPoint.labels.push(data.requirement.subject.substr(0, 30) + "...");
                         vm.charts.avancementsPoint.data.push(avancementPoints);
                     }
                 }
@@ -263,6 +263,16 @@
                     });
                 });
             })
+        }
+
+        function calculTeamInformations(project, versions) {
+            return new Promise(function(resolve, reject) {
+                versions.sort(function(a,b) {return (a.id < b.id) ? 1 : ((b.id < a.id) ? -1 : 0);} );
+                console.log(versions);
+
+                resolve();
+            });
+
         }
 
         function reloadRequirement(project, version) {
