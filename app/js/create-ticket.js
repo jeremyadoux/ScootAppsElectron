@@ -75,6 +75,7 @@
             title: "",
             description: "",
             category: "",
+            assignedTo: "",
             parent_issue_id: 0,
             reopen: false
         };
@@ -85,7 +86,8 @@
             status: [],
             version: [],
             priorities: [],
-            parentIssue: []
+            parentIssue: [],
+            memberships: []
         };
 
 
@@ -99,6 +101,7 @@
                 priority: "",
                 title: "",
                 description: "",
+                assignedTo: "",
                 parent_issue_id: 0,
                 reopen: false
             };
@@ -512,6 +515,15 @@
                     vm.dataSelect.categories = results.data.issue_categories;
                     vm.createTicket.category = '';
                 });
+
+                redmineService.getMembership(project).then(function (results) {
+                    vm.dataSelect.memberships = [];
+                    for(let index in results.data.memberships) {
+                        vm.dataSelect.memberships.push(results.data.memberships[index].user);
+                    }
+                    console.log(vm.dataSelect.memberships);
+                    vm.createTicket.assignedTo = '';
+                });
                 redmineService.trackerList(project).then(function (results) {
                     vm.dataSelect.tracker = results.data.trackers;
                     for (let index in vm.dataSelect.tracker) {
@@ -527,6 +539,7 @@
                             vm.createTicket.status = vm.dataSelect.status[index];
                         }
                     }
+                    console.log(vm.dataSelect.status);
                 });
 
                 redmineService.priorityList().then(function (results) {

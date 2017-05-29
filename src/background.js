@@ -184,7 +184,7 @@ function openWindowsStats() {
         toaster.init(winStats);
 
         // and load the index.html of the app.
-        winStats.openDevTools();
+        //winStats.openDevTools();
         winStats.loadURL(`file://${__dirname}/redmine/statistiques/index.html`);
         winStats.maximize();
 
@@ -261,9 +261,9 @@ function createTray() {
             openWindowsCreateTicket();
         }}));
 
-        menu.append(new MenuItem({label: "Stats", click() {
+        /*menu.append(new MenuItem({label: "Stats", click() {
             openWindowsStats();
-        }}));
+        }}));*/
 
         menu.append(new MenuItem({type: 'separator'}));
 

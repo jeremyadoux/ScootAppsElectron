@@ -261,6 +261,33 @@
                         <div class="container-fluid">
                             <div class="row">
 
+                                <label for="inputAssignedTo" class="control-label col-sm-2">Assigné à</label>
+
+                                <div class="col-sm-8">
+                                    <ui-select id="inputAssignedTo" ng-model="ctc.createTicket.assignedTo">
+                                        <ui-select-match>
+                                            <span ng-bind="ctc.createTicket.assignedTo.name"></span>
+                                        </ui-select-match>
+                                        <ui-select-choices
+                                            repeat="item in (ctc.dataSelect.memberships | filter: $select.search) track by item.id">
+                                            <span ng-bind="item.name"></span>
+                                        </ui-select-choices>
+                                    </ui-select>
+                                </div>
+                                <div class="col-sm-2">
+                                    <button class="btn btn-danger" type="button" aria-label="Effacer la sélection"
+                                            ng-click="ctc.createTicket.assignedTo = ''">
+                                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+
+                        <div class="container-fluid">
+                            <div class="row">
+
                                 <label for="inputPriority" class="control-label col-sm-2">Priorité</label>
 
                                 <div class="col-sm-8">
@@ -382,7 +409,7 @@
         <div class="row">
             <div class="col-md-12">
 
-                <button type="button" class="btn btn-success" ng-click="ctc.saveTicketFull()">Sauvegarder le ticket</button>
+                <button type="button" class="btn btn-success" ng-click="ctc.saveTicketFull()">Créer le ticket</button>
                 <button type="button" class="btn btn-warning" ng-click="ctc.razTicket()">Remise à zéro du formulaire
                 </button>
                 <button ng-show="ctc.oneClickedImage()" class="btn btn-danger" type="button" aria-label="Go to ticket"

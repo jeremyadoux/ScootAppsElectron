@@ -165,6 +165,10 @@
                 data.issue.category_id = ticket.category.id;
             }
 
+            if(ticket.assignedTo != "") {
+                data.issue.assigned_to_id = ticket.assignedTo.id;
+            }
+
             if(ticket.parent_issue_id != 0) {
                 data.issue.parent_issue_id = ticket.parent_issue_id.id;
             }
@@ -177,6 +181,14 @@
                 url: redmineUrl + 'issues.json',
                 method: "GET",
                 params: {tracker_id: trackerId, fixed_version_id: versionId, project_id: projectId, status_id: '*'},
+                headers: headersRedmine
+            });
+        }
+
+        function getMembership(project) {
+            return $http({
+                url: redmineUrl + '/projects/'+project.id+'/memberships.json',
+                method: "GET",
                 headers: headersRedmine
             });
         }
@@ -300,6 +312,7 @@
         this.getCategories = getCategories;
         this.loadTicket = loadTicket;
         this.getTicket = getTicket;
+        this.getMembership = getMembership;
 
         /*return {
             favoriteProject: favoriteProject,
