@@ -5,9 +5,9 @@
         .module('app', ['ui.select', 'ngSanitize'])
         .controller("createTicketCtrl", createTicketCtrl);
 
-    createTicketCtrl.$inject = ['$scope', 'redmineService'];
+    createTicketCtrl.$inject = ['$scope', '$location', '$timeout', 'redmineService'];
 
-    function createTicketCtrl($scope, redmineService) {
+    function createTicketCtrl($scope, $location, $timeout, redmineService) {
         const {ipcRenderer, desktopCapturer, remote} = require('electron');
 
         let urlRedmine = '';
@@ -36,15 +36,13 @@
         vm.changeDrawingMode = changeDrawingMode;
         vm.goToCreateTicket = goToCreateTicket;
         vm.saveTicketFull = saveTicketFull;
-        vm.loadParentUS = loadParentUS;
         vm.clickedImage = clickedImage;
         vm.doubleClickedImage = doubleClickedImage;
         vm.removeSelectedFrabic = removeSelectedFrabic;
-        vm.razTicket = razTicket;
-        vm.removeUSParent = removeUSParent;
         vm.oneClickedImage = oneClickedImage;
-        vm.resetCreateTicket = resetCreateTicket;
         vm.noScreenGoTO = noScreenGoTO;
+        vm.reloadScreen = reloadScreen;
+        vm.messageToUSer = "";
 
         //Attributes
         vm.ready = false;
@@ -64,71 +62,22 @@
         };
         vm.errorMessage = "";
 
-
         //Ticket information
         vm.createTicket = {
-            project: "",
-            tracker: "",
-            status: "",
-            version: "",
-            priority: "",
+            project: 705,
+            tracker: 19,
+            status: 1,
+            priority: 4,
             title: "",
             description: "",
-            category: "",
-            assignedTo: "",
-            parent_issue_id: 0,
-            reopen: false
-        };
-        vm.dataSelect = {
-            projects: [],
-            categories: [],
-            tracker: [],
-            status: [],
-            version: [],
-            priorities: [],
-            parentIssue: [],
-            memberships: []
+            email: ""
         };
 
-
-        function razTicket() {
-            vm.createTicket = {
-                project: "",
-                tracker: "",
-                status: "",
-                version: "",
-                category: "",
-                priority: "",
-                title: "",
-                description: "",
-                assignedTo: "",
-                parent_issue_id: 0,
-                reopen: false
-            };
-        }
-
-        function removeUSParent() {
-            vm.createTicket.parent_issue_id = 0;
-        }
-
-        ipcRenderer.on('redmine-return', (event, arg) => {
-            urlRedmine =  arg.url;
-            dirnameElement = arg.dirname;
-            redmineService.setApiKey(arg.apikey, arg.url);
-            init();
-            ipcRenderer.send('redmine-get-favorite', {});
-        });
+        init();
 
         ipcRenderer.on('redmine-return-favorite', (event, arg) => {
             if(arg && typeof arg.project != 'undefined') {
-                vm.createTicket.project = arg.project;
-                vm.createTicket.tracker = arg.tracker;
-                vm.createTicket.status = arg.status;
-                vm.createTicket.version = arg.version;
-                vm.createTicket.category = arg.category;
-                vm.createTicket.priority = arg.priority;
-                vm.createTicket.parent_issue_id = arg.parent_issue_id;
-
+                vm.createTicket.email = arg.email;
                 $scope.$apply();
             }
         });
@@ -159,6 +108,14 @@
                 vm.ready = true;
                 $scope.$apply();
             });
+
+            ipcRenderer.send('redmine-get-favorite', {});
+        }
+
+        function reloadScreen() {
+            vm.sources = [];
+            vm.selectedSources = [];
+            init();
         }
 
         function saveForm() {
@@ -196,9 +153,6 @@
         }
 
         function noScreenGoTO() {
-            redmineService.favoriteProject().then(function (results) {
-                vm.dataSelect.projects = results;
-            });
             vm.selectedSources = [];
             vm.step = 3;
         }
@@ -487,100 +441,15 @@
             vm.selectedSources[vm.currentScreen].urlTHModified = canvasFabric.toDataURL();
             vm.selectedSources[vm.currentScreen].jsonModify = canvasFabric.toJSON();
             vm.step = 3;
-
-            redmineService.favoriteProject().then(function (results) {
-                vm.dataSelect.projects = results;
-            });
         }
 
-        function changeVersionSelection(version) {
-            if(version) {
-                loadParentUS();
-            }
-        }
-
-        function changeProjectSelection(project) {
-            if(project != null) {
-                redmineService.versionProject(project).then(function (results) {
-                    vm.dataSelect.version = [];
-                    for (let index in results.data.versions) {
-                        if (results.data.versions[index].status != "closed") {
-                            vm.dataSelect.version.push(results.data.versions[index]);
-                        }
-                    }
-
-                    vm.createTicket.version = '';
-                });
-                redmineService.getCategories(project).then(function (results) {
-                    vm.dataSelect.categories = results.data.issue_categories;
-                    vm.createTicket.category = '';
-                });
-
-                redmineService.getMembership(project).then(function (results) {
-                    vm.dataSelect.memberships = [];
-                    for(let index in results.data.memberships) {
-                        vm.dataSelect.memberships.push(results.data.memberships[index].user);
-                    }
-                    console.log(vm.dataSelect.memberships);
-                    vm.createTicket.assignedTo = '';
-                });
-                redmineService.trackerList(project).then(function (results) {
-                    vm.dataSelect.tracker = results.data.trackers;
-                    for (let index in vm.dataSelect.tracker) {
-                        if (vm.dataSelect.tracker[index].id == 37 && vm.createTicket.tracker == '') {
-                            vm.createTicket.tracker = vm.dataSelect.tracker[index];
-                        }
-                    }
-                });
-                redmineService.statusList().then(function (results) {
-                    vm.dataSelect.status = results.data.issue_statuses;
-                    for (let index in vm.dataSelect.status) {
-                        if (vm.dataSelect.status[index].id == 1 && vm.createTicket.status == '') {
-                            vm.createTicket.status = vm.dataSelect.status[index];
-                        }
-                    }
-                    console.log(vm.dataSelect.status);
-                });
-
-                redmineService.priorityList().then(function (results) {
-                    vm.dataSelect.priorities = results.data.issue_priorities;
-                    for (let index in vm.dataSelect.priorities) {
-                        if (vm.dataSelect.priorities[index].id == 4 && vm.createTicket.priority == '') {
-                            vm.createTicket.priority = vm.dataSelect.priorities[index];
-                        }
-                    }
-                });
-
-                vm.dataSelect.parentIssue = [];
-                vm.createTicket.parent_issue_id = 0;
-            }
-        }
-
-        function loadParentUS() {
-            vm.createTicket.parent_issue_id = 0;
-            redmineService.getTicketUS(vm.createTicket.project.id ,vm.createTicket.version.id, 36).then(function(results) {
-               vm.dataSelect.parentIssue = results.data.issues;
-               vm.createTicket.parent_issue_id = 0;
-            });
-        }
 
         function saveTicketFull() {
             vm.errorMessage = "";
 
-            if(vm.createTicket.project == '') {
-                vm.errorMessage = vm.errorMessage + "Vous devez sélectionner un projet <br />";
-            }
 
-            if(vm.createTicket.tracker == '') {
-                vm.errorMessage = vm.errorMessage + "Vous devez sélectionner un tracker <br />";
-            }
-
-            if(vm.createTicket.status == '') {
-                vm.errorMessage = vm.errorMessage + "Vous devez sélectionner un status <br />";
-            }
-
-            if(vm.createTicket.priority == '') {
-                vm.errorMessage = vm.errorMessage + "Vous devez sélectionner une priorité <br />";
+            if(typeof vm.createTicket.email == "undefined" || vm.createTicket.email == '') {
+                vm.errorMessage = vm.errorMessage + "Vous devez saisir votre email pour que nous puissions vous recontacter <br />";
             }
 
             if(vm.createTicket.title == '') {
@@ -592,6 +461,8 @@
             }
 
             if(vm.errorMessage == "") {
+                vm.messageToUSer = "Votre ticket est en cours de sauvegarde";
+
                 new Promise(function(resolve, reject) {
                     if(vm.selectedSources.length > 0) {
                         redmineService.uploadAttachments(vm.selectedSources).then(function (response) {
@@ -612,34 +483,15 @@
                         }
                     }
 
-                    redmineService.createTicket(vm.createTicket).then(function (response) {
+
+
+                    redmineService.createTicket(vm.createTicket).then(function () {
                         ipcRenderer.send('redmine-save-favorite', vm.createTicket);
-                        let urlRedirect = urlRedmine + "issues/" + response.data.issue.id;
-                        let msg = {
-                            title: "Nouveau ticket créé #" + response.data.issue.id,
-                            message: "Un nouveau ticket a été créé <a href onclick='openLink(\"" + urlRedirect + "\");'>Accéder au ticket</a>",
-                            width: 440,
-                            timeout: 6000,
-                            focus: false,
-                            htmlFile: 'file://' + dirnameElement + '/templates/toast-ticket-created.html?'
-                        };
-                        ipcRenderer.send('electron-toaster-message', msg);
-
-                        if (vm.createTicket.reopen) {
-                            redmineService.updateUSReopen(vm.createTicket.parent_issue_id.id).then(function (response) {
-                            });
-                        }
-
-                        let window = remote.getCurrentWindow();
-                        window.close();
+                        vm.messageToUSer = "Merci, votre ticket a été sauvegardé.";
+                        $timeout(function () { ipcRenderer.send('reload-windows', {})}, 1500);
                     });
                 });
             }
-        }
-
-        function resetCreateTicket() {
-            let window = remote.getCurrentWindow();
-            window.close();
         }
 
         function hexToRgb(hex) {
@@ -677,14 +529,6 @@
         }
 
         $scope.$watch(function () {
-            return vm.createTicket.project;
-        }, changeProjectSelection);
-
-        $scope.$watch(function () {
-            return vm.createTicket.version;
-        }, changeVersionSelection);
-
-        $scope.$watch(function () {
             return vm.colorSelected;
         }, changedColorSelection);
 
@@ -694,14 +538,6 @@
 
         $scope.$watch(function () {
             return vm.rect.opacity;
-        }, changedRectOpacity)
-
-        document.addEventListener("keydown", function(e) {
-            if(vm.step == 2) {
-                if(vm.objectMode != 'text') {
-
-                }
-            }
-        }, false);
+        }, changedRectOpacity);
     }
 })();

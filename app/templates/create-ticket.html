@@ -15,10 +15,7 @@
                                 class="btn btn-info">Continuer
                         </button>
                         <button ng-show="ctc.ready" class="btn btn-warning" type="button"
-                                aria-label="Go to final" ng-click="ctc.noScreenGoTO()">Continuer sans sélectionner de screen
-                        </button>
-                        <button ng-show="ctc.oneClickedImage()" class="btn btn-danger" type="button"
-                                aria-label="Go to ticket" ng-click="ctc.resetCreateTicket()">Annuler
+                                aria-label="Go to final" ng-click="ctc.reloadScreen()">Recharger les images
                         </button>
                     </div>
                 </div>
@@ -39,10 +36,7 @@
                                 class="btn btn-info">Continuer
                         </button>
                         <button ng-show="ctc.ready" class="btn btn-warning" type="button"
-                                aria-label="Go to final" ng-click="ctc.noScreenGoTO()">Continuer sans sélectionner de screen
-                        </button>
-                        <button ng-show="ctc.oneClickedImage()" class="btn btn-danger" type="button"
-                                aria-label="Go to ticket" ng-click="ctc.resetCreateTicket()">Annuler
+                                aria-label="Go to final" ng-click="ctc.reloadScreen()">Recharger les images
                         </button>
                     </div>
                 </div>
@@ -138,11 +132,6 @@
                                 </button>
                             </li>
                             <li>
-                                <button class="btn btn-danger" type="button" aria-label="Go to ticket"
-                                        ng-click="ctc.resetCreateTicket()">Annuler
-                                </button>
-                            </li>
-                            <li>
                                 <a href
                                         ng-click="ctc.step = ctc.step - 1">Revenir à l'étape précédente
                                 </a>
@@ -168,6 +157,15 @@
                 </div>
             </div>
         </div>
+
+        <div class="row" ng-show="ctc.messageToUSer != ''">
+            <div class="col-md-12">
+                <div class="alert alert-success" role="alert">
+                    <p class="lead" ng-bind-html="ctc.messageToUSer"></p>
+                </div>
+            </div>
+        </div>
+
         <div class="row" ng-show="ctc.errorMessage != ''">
             <div class="col-md-12">
                 <div class="alert alert-danger" role="alert">
@@ -179,41 +177,10 @@
             <div class="col-md-8">
                 <form class="form-horizontal">
                     <div class="form-group">
-                        <label for="inputProject" class="col-sm-2 control-label">Projet</label>
+                        <label for="inputMail" class="col-sm-2 control-label">Votre adresse mail</label>
                         <div class="col-sm-10">
-                            <ui-select id="inputProject" ng-model="ctc.createTicket.project">
-                                <ui-select-match>
-                                    <span ng-bind="ctc.createTicket.project.name"></span>
-                                </ui-select-match>
-                                <ui-select-choices
-                                    repeat="item in (ctc.dataSelect.projects | filter: $select.search) track by item.id">
-                                    <span ng-bind="item.name"></span>
-                                </ui-select-choices>
-                            </ui-select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="container-fluid">
-                            <div class="row">
-                                <label for="inputTracker" class="col-sm-2 control-label">Tracker</label>
-                                <div class="col-sm-8">
-                                    <ui-select id="inputTracker" ng-model="ctc.createTicket.tracker">
-                                        <ui-select-match>
-                                            <span ng-bind="ctc.createTicket.tracker.name"></span>
-                                        </ui-select-match>
-                                        <ui-select-choices
-                                            repeat="item in (ctc.dataSelect.tracker | filter: $select.search) track by item.id">
-                                            <span ng-bind="item.name"></span>
-                                        </ui-select-choices>
-                                    </ui-select>
-                                </div>
-                                <div class="col-sm-2">
-                                    <button class="btn btn-danger" type="button" aria-label="Effacer la sélection"
-                                            ng-click="ctc.createTicket.tracker = ''">
-                                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-                                    </button>
-                                </div>
-                            </div>
+                            <input type="text" class="form-control" ng-model="ctc.createTicket.email" id="inputMail"
+                                   placeholder="Votre email" required>
                         </div>
                     </div>
                     <div class="form-group">
@@ -230,191 +197,12 @@
                                       rows="3" required></textarea>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <div class="container-fluid">
-                            <div class="row">
-
-                                <label for="inputStatus" class="col-sm-2 control-label">Statut</label>
-
-                                <div class="col-sm-8">
-                                    <ui-select id="inputStatus" ng-model="ctc.createTicket.status">
-                                        <ui-select-match>
-                                            <span ng-bind="ctc.createTicket.status.name"></span>
-                                        </ui-select-match>
-                                        <ui-select-choices
-                                            repeat="item in (ctc.dataSelect.status | filter: $select.search) track by item.id">
-                                            <span ng-bind="item.name"></span>
-                                        </ui-select-choices>
-                                    </ui-select>
-                                </div>
-                                <div class="col-sm-2">
-                                    <button class="btn btn-danger" type="button" aria-label="Effacer la sélection"
-                                            ng-click="ctc.createTicket.status = ''">
-                                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-
-                        <div class="container-fluid">
-                            <div class="row">
-
-                                <label for="inputAssignedTo" class="control-label col-sm-2">Assigné à</label>
-
-                                <div class="col-sm-8">
-                                    <ui-select id="inputAssignedTo" ng-model="ctc.createTicket.assignedTo">
-                                        <ui-select-match>
-                                            <span ng-bind="ctc.createTicket.assignedTo.name"></span>
-                                        </ui-select-match>
-                                        <ui-select-choices
-                                            repeat="item in (ctc.dataSelect.memberships | filter: $select.search) track by item.id">
-                                            <span ng-bind="item.name"></span>
-                                        </ui-select-choices>
-                                    </ui-select>
-                                </div>
-                                <div class="col-sm-2">
-                                    <button class="btn btn-danger" type="button" aria-label="Effacer la sélection"
-                                            ng-click="ctc.createTicket.assignedTo = ''">
-                                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-
-                        <div class="container-fluid">
-                            <div class="row">
-
-                                <label for="inputPriority" class="control-label col-sm-2">Priorité</label>
-
-                                <div class="col-sm-8">
-                                    <ui-select id="inputPriority" ng-model="ctc.createTicket.priority">
-                                        <ui-select-match>
-                                            <span ng-bind="ctc.createTicket.priority.name"></span>
-                                        </ui-select-match>
-                                        <ui-select-choices
-                                            repeat="item in (ctc.dataSelect.priorities | filter: $select.search) track by item.id">
-                                            <span ng-bind="item.name"></span>
-                                        </ui-select-choices>
-                                    </ui-select>
-                                </div>
-                                <div class="col-sm-2">
-                                    <button class="btn btn-danger" type="button" aria-label="Effacer la sélection"
-                                            ng-click="ctc.createTicket.priority = ''">
-                                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-
-                        <div class="container-fluid">
-                            <div class="row">
-
-                                <label for="inputCategory" class="control-label col-sm-2">Catégorie</label>
-
-                                <div class="col-sm-8">
-                                    <ui-select id="inputCategory" ng-model="ctc.createTicket.category">
-                                        <ui-select-match>
-                                            <span ng-bind="ctc.createTicket.category.name"></span>
-                                        </ui-select-match>
-                                        <ui-select-choices
-                                            repeat="item in (ctc.dataSelect.categories | filter: $select.search) track by item.id">
-                                            <span ng-bind="item.name"></span>
-                                        </ui-select-choices>
-                                    </ui-select>
-                                </div>
-                                <div class="col-sm-2">
-                                    <button class="btn btn-danger" type="button" aria-label="Effacer la sélection"
-                                            ng-click="ctc.createTicket.category = ''">
-                                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-
-                        <div class="container-fluid">
-                            <div class="row">
-
-                                <label for="inputVersion" class="control-label col-sm-2">Version cible</label>
-
-                                <div class="col-sm-8">
-                                    <ui-select id="inputVersion" ng-model="ctc.createTicket.version">
-                                        <ui-select-match>
-                                            <span ng-bind="ctc.createTicket.version.name"></span>
-                                        </ui-select-match>
-                                        <ui-select-choices
-                                            repeat="item in (ctc.dataSelect.version | filter: $select.search) track by item.id">
-                                            <span ng-bind="item.name"></span>
-                                        </ui-select-choices>
-                                    </ui-select>
-                                </div>
-                                <div class="col-sm-2">
-                                    <button class="btn btn-danger" type="button" aria-label="Effacer la sélection"
-                                            ng-click="ctc.createTicket.version = ''">
-                                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="container-fluid">
-                            <div class="row">
-                                <label for="inputParent" class="control-label col-sm-2">Tâches parentes</label>
-                                <div class="col-sm-8">
-                                    <ui-select id="inputParent" ng-model="ctc.createTicket.parent_issue_id">
-                                        <ui-select-match>
-                                            <span ng-bind="ctc.createTicket.parent_issue_id.subject"></span>
-                                        </ui-select-match>
-                                        <ui-select-choices
-                                            repeat="item in (ctc.dataSelect.parentIssue | filter: $select.search) track by item.id">
-                                            <span ng-bind="item.subject"></span>
-                                        </ui-select-choices>
-                                    </ui-select>
-                                </div>
-                                <div class="col-sm-2">
-                                    <button class="btn btn-info" type="button" aria-label="Effacer la sélection"
-                                            ng-click="ctc.loadParentUS()">
-                                        <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
-                                    </button>
-                                    <button class="btn btn-danger" type="button" aria-label="Effacer la sélection"
-                                    ng-click="ctc.removeUSParent()">
-                                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-10">
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" ng-model="ctc.createTicket.reopen"> Réouvrir la US parente
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-
                 </form>
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
-
                 <button type="button" class="btn btn-success" ng-click="ctc.saveTicketFull()">Créer le ticket</button>
-                <button type="button" class="btn btn-warning" ng-click="ctc.razTicket()">Remise à zéro du formulaire
-                </button>
-                <button ng-show="ctc.oneClickedImage()" class="btn btn-danger" type="button" aria-label="Go to ticket"
-                        ng-click="ctc.resetCreateTicket()">Annuler
-                </button>
                 <a href
                    ng-click="ctc.step = ctc.step - 1">Revenir à l'étape précédente
                 </a>
