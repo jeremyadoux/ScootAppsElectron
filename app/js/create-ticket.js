@@ -2,12 +2,13 @@
     'use strict';
 
     angular
-        .module('app', ['ui.select', 'ngSanitize'])
-        .controller("createTicketCtrl", createTicketCtrl);
+        .module('app', ['ui.select', 'ngSanitize', 'ui.bootstrap'])
+        .controller("createTicketCtrl", createTicketCtrl)
+        .controller("ModalInstanceCtrl", ModalInstanceCtrl);
 
-    createTicketCtrl.$inject = ['$scope', 'redmineService'];
+    createTicketCtrl.$inject = ['$scope', '$uibModal', 'redmineService'];
 
-    function createTicketCtrl($scope, redmineService) {
+    function createTicketCtrl($scope, $uibModal, redmineService) {
         const {ipcRenderer, desktopCapturer, remote} = require('electron');
 
         let urlRedmine = '';
@@ -64,6 +65,18 @@
         };
         vm.errorMessage = "";
 
+        vm.imageCCho = [
+            {name: 'burger', img: './images/ccho/burger.png'},
+            {name: 'ccho', img: './images/ccho/ccho.png'},
+            {name: 'gerable', img: './images/ccho/gerable.png'},
+            {name: 'grave', img: './images/ccho/grave.png'},
+            {name: 'jvoispas', img: './images/ccho/jvoispas.png'},
+            {name: 'michel', img: './images/ccho/michel.png'},
+            {name: 'schlaff', img: './images/ccho/schlaff.png'},
+            {name: 'serieux', img: './images/ccho/serieux.png'}
+        ];
+
+        vm.selectedCCHO = '';
 
         //Ticket information
         vm.createTicket = {
@@ -264,7 +277,47 @@
                 canvasFabric.selection = true;
             }
 
+            if(mode == 'ccho') {
+                var modalInstance = $uibModal.open({
+                    animation: true,
+                    ariaLabelledBy: 'modal-title',
+                    ariaDescribedBy: 'modal-body',
+                    template: '<div class="modal-header">\n' +
+                    '            <h3 class="modal-title" id="modal-title">La michel BOX!</h3>\n' +
+                    '        </div>\n' +
+                    '        <div class="ccho modal-body" id="modal-body">\n' +
+                    '            <ul>\n' +
+                    '                <li ng-repeat="item in $ctrl.items">\n' +
+                    '                    <a href="#" ng-click="$event.preventDefault(); $ctrl.selected.item = item"><img class="resize-mini-ccho" ng-class="{minicchoselected : item == $ctrl.selected.item}" ng-src="{{item.img}}" alt="" /></a>\n' +
+                    '                </li>\n' +
+                    '            </ul>\n' +
+                    '        </div>\n' +
+                    '        <div class="modal-footer">\n' +
+                    '            <button class="btn btn-primary" type="button" ng-click="$ctrl.ok()">OK</button>\n' +
+                    '            <button class="btn btn-warning" type="button" ng-click="$ctrl.cancel()">Cancel</button>\n' +
+                    '        </div>',
+                    controller: 'ModalInstanceCtrl',
+                    controllerAs: '$ctrl',
+                    resolve: {
+                        items: function () {
+                            return vm.imageCCho;
+                        }
+                    }
+                });
 
+                modalInstance.result.then(function (selectedItem) {
+                    vm.selectedCCHO = selectedItem;
+
+                    fabric.Image.fromURL(selectedItem.img, function(img) {
+                        var oImg = img.set({ left: 0, top: 0}).scale(0.5);
+                        canvasFabric.add(oImg);
+                    });
+
+                    changeDrawingMode('pointer');
+                }, function () {
+
+                });
+            }
         }
 
         function mousedownCanvas(o) {
@@ -321,10 +374,6 @@
                     isDown = true;
                     var pointer = canvasFabric.getPointer(o.e);
                     var points = [ pointer.x, pointer.y, pointer.x, pointer.y ];
-
-
-
-
 
                     line = new fabric.Line(points, {
                         strokeWidth: 5,
@@ -703,5 +752,23 @@
                 }
             }
         }, false);
+    }
+
+
+
+    function ModalInstanceCtrl ($uibModalInstance, items) {
+        var $ctrl = this;
+        $ctrl.items = items;
+        $ctrl.selected = {
+            item: ''
+        };
+
+        $ctrl.ok = function () {
+            $uibModalInstance.close($ctrl.selected.item);
+        };
+
+        $ctrl.cancel = function () {
+            $uibModalInstance.dismiss('cancel');
+        };
     }
 })();

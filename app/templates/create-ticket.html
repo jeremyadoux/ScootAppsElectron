@@ -109,6 +109,12 @@
                         </button>
                     </div>
                     <div class="col-md-12">
+                        <button class="btn btn-default" type="button" aria-label="C'est chaud"
+                                ng-click="ctc.changeDrawingMode('ccho')" ng-class="{'active': ctc.drawingMode == 'ccho'}">
+                            <span class="glyphicon glyphicon-picture" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                    <div class="col-md-12">
                         <button class="btn btn-danger" type="button" aria-label="Effacer la sélection"
                                 ng-click="ctc.removeSelectedFrabic()">
                             <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>

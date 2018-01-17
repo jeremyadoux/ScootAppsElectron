@@ -1,3 +1,42 @@
 .toolbars-scout {
     min-height: 42px;
 }
+.resize-mini-ccho {
+    width: 200px;
+    border-radius: 10px;
+    position: relative;
+}
+
+.resize-mini-ccho:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transform: scale(0);
+    transition: all ease 0.3s;
+    transform-origin: center center;
+    background: rgba(0,0,0,0.1);
+}
+
+.resize-mini-ccho:hover:before {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.minicchoselected {
+    border-radius: 10px;
+    background: rgba(0,0,0,0.1);
+    box-shadow: 1px 1px rgba(0, 0, 0, 0.8);
+    zoom: 1.7;
+}
+
+.ccho li {
+    display: inline-block;
+    width: auto;
+    margin: 10px 25px;
+}
+
+.ccho ul {
+    list-style: none;
+}
