@@ -40,7 +40,7 @@ function openWindowsCreateTicket() {
         winCreateTicket = new BrowserWindow({width: 1680, height: 960, icon:  __dirname + '/images/scout.ico'});
 
         // and load the index.html of the app.
-        winCreateTicket.openDevTools();
+        //winCreateTicket.openDevTools();
         winCreateTicket.loadURL(`file://${__dirname}/templates/ticket-index.html`);
         winCreateTicket.maximize();
     }
